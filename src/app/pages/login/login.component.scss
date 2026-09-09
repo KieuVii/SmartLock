@@ -1,0 +1,114 @@
+:host {
+  display: block;
+  min-height: 100dvh;
+}
+
+.auth-page {
+  box-sizing: border-box;
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background:
+    radial-gradient(
+      1200px 600px at 10% -10%,
+      color-mix(in srgb, var(--mat-sys-primary) 14%, transparent),
+      transparent
+    ),
+    radial-gradient(
+      1000px 500px at 110% 110%,
+      color-mix(in srgb, var(--mat-sys-tertiary) 16%, transparent),
+      transparent
+    ),
+    var(--mat-sys-surface-container-low);
+}
+
+.auth-card {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 400px;
+  padding: 40px 36px;
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 20px;
+  background-color: var(--mat-sys-surface);
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.08),
+    0 12px 32px -8px rgba(0, 0, 0, 0.12);
+}
+
+.brand {
+  margin-bottom: 28px;
+  text-align: center;
+}
+
+.brand-logo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, var(--mat-sys-primary), var(--mat-sys-tertiary));
+  color: var(--mat-sys-on-primary);
+  margin-bottom: 16px;
+}
+
+.brand-logo mat-icon {
+  width: 28px;
+  height: 28px;
+  font-size: 28px;
+}
+
+.brand-title {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--mat-sys-on-surface);
+}
+
+.brand-subtitle {
+  margin: 6px 0 0;
+  font-size: 0.9rem;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.full-width {
+  width: 100%;
+}
+
+.error-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background-color: var(--mat-sys-error-container);
+  color: var(--mat-sys-on-error-container);
+  font-size: 0.85rem;
+}
+
+.error-box mat-icon {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  font-size: 18px;
+}
+
+.submit-btn {
+  height: 48px;
+  margin-top: 8px;
+  border-radius: 12px;
+}
+
+.auth-alt {
+  margin: 20px 0 0;
+  text-align: center;
+  font-size: 0.9rem;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.auth-alt a {
+  font-weight: 500;
+}

@@ -1,0 +1,25 @@
+:host {
+  display: block;
+  height: 100dvh;
+}
+
+.app-shell {
+  height: 100%;
+}
+
+.app-sidenav {
+  width: 264px;
+  background: var(--mat-sys-surface);
+}
+
+.app-sidenav.mat-drawer-side {
+  border-right: 1px solid var(--mat-sys-outline-variant);
+}
+
+.app-content {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 24px;
+}

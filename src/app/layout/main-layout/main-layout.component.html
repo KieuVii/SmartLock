@@ -1,0 +1,17 @@
+<mat-sidenav-container class="app-shell">
+  <mat-sidenav
+    #drawer
+    [mode]="sidenavMode()"
+    [opened]="isDesktop()"
+    [disableClose]="isDesktop()"
+    class="app-sidenav"
+  >
+    <app-sidebar />
+  </mat-sidenav>
+  <mat-sidenav-content>
+    <app-header (menuClick)="onMenuClick()" />
+    <main class="app-content">
+      <router-outlet />
+    </main>
+  </mat-sidenav-content>
+</mat-sidenav-container>

@@ -1,0 +1,73 @@
+.user-cell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.user-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background-color: var(--mat-sys-primary-container);
+  color: var(--mat-sys-on-primary-container);
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.user-meta {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.user-name {
+  font-weight: 500;
+  color: var(--mat-sys-on-surface);
+}
+
+.user-email {
+  font-size: 0.78rem;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.role-admin {
+  background-color: var(--mat-sys-primary-container);
+  color: var(--mat-sys-on-primary-container);
+}
+
+.role-user {
+  background-color: var(--mat-sys-surface-container-high);
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.status-active {
+  background-color: var(--mat-sys-tertiary-container);
+  color: var(--mat-sys-on-tertiary-container);
+}
+
+.status-blocked {
+  background-color: var(--mat-sys-error-container);
+  color: var(--mat-sys-on-error-container);
+}
+
+.status-pending {
+  background-color: color-mix(in srgb, #f9a825 18%, transparent);
+  color: #7a5a00;
+}
+
+.actions-col {
+  text-align: right;
+}
+
+.actions-col ::ng-deep .mat-mdc-cell,
+.actions-col ::ng-deep .mat-mdc-header-cell {
+  white-space: nowrap;
+}
+
+.danger-icon {
+  color: var(--mat-sys-error);
+}

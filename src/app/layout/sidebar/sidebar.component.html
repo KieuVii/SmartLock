@@ -1,0 +1,27 @@
+<div class="sidebar">
+  <div class="brand">
+    <span class="brand-logo">
+      <mat-icon>lock</mat-icon>
+    </span>
+    <div class="brand-text">
+      <span class="brand-name">SmartLock</span>
+      <span class="brand-sub">Access Control</span>
+    </div>
+  </div>
+
+  <div class="nav-section">
+    <span class="section-label">Main</span>
+    <nav class="nav-list">
+      @for (item of navItems; track item.path) {
+        <a class="nav-item" [routerLink]="item.path" routerLinkActive="active">
+          <mat-icon class="nav-icon">{{ item.icon }}</mat-icon>
+          <span class="nav-label">{{ item.label }}</span>
+        </a>
+      }
+    </nav>
+  </div>
+
+  <div class="sidebar-footer">
+    <span>SmartLock v1.0</span>
+  </div>
+</div>

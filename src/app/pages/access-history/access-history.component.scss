@@ -1,0 +1,7 @@
+.filter-select {
+  width: 180px;
+}
+
+.filter-select ::ng-deep .mat-mdc-text-field-wrapper {
+  border-radius: 999px;
+}

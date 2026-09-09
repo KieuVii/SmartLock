@@ -1,0 +1,94 @@
+<section class="page">
+  <mat-card class="panel-card">
+    <div class="panel-header">
+      <div>
+        <h2 class="panel-title">Face Registration</h2>
+        <p class="panel-subtitle">Registered face profiles used to authorize door access</p>
+      </div>
+      <div class="panel-actions">
+        <button mat-stroked-button (click)="loadFaces()" [disabled]="loading()">
+          <mat-icon>refresh</mat-icon>
+          Refresh
+        </button>
+      </div>
+    </div>
+    <mat-card-content>
+      <div class="notice camera-notice">
+        <mat-icon>photo_camera</mat-icon>
+        <span
+          >Camera capture is coming soon. Faces can currently be reviewed and managed here.</span
+        >
+      </div>
+
+      @if (notice() && !error()) {
+        <div class="notice">
+          <mat-icon>info</mat-icon>
+          <span>{{ notice() }}</span>
+        </div>
+      }
+      @if (loading()) {
+        <div class="center">
+          <mat-spinner diameter="32" />
+        </div>
+      } @else if (error()) {
+        <div class="state-block">
+          <mat-icon class="state-icon">error_outline</mat-icon>
+          <p class="state-title">Unable to load faces</p>
+          <p class="state-message">{{ error() }}</p>
+        </div>
+      } @else if (faces().length === 0) {
+        <div class="state-block">
+          <mat-icon class="state-icon">face</mat-icon>
+          <p class="state-title">No faces registered yet</p>
+          <p class="state-message">Registered faces will appear here once capture is available.</p>
+        </div>
+      } @else {
+        <div class="table-wrap">
+          <table mat-table [dataSource]="faces()" class="logs-table">
+            <ng-container matColumnDef="face">
+              <th mat-header-cell *matHeaderCellDef>Face</th>
+              <td mat-cell *matCellDef="let face">
+                <div class="face-cell">
+                  <span class="face-avatar">{{ avatarText(face) }}</span>
+                  <span class="face-name">{{ face.face_name }}</span>
+                </div>
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="user">
+              <th mat-header-cell *matHeaderCellDef>User</th>
+              <td mat-cell *matCellDef="let face">{{ shortenId(face.user_id) }}</td>
+            </ng-container>
+            <ng-container matColumnDef="status">
+              <th mat-header-cell *matHeaderCellDef>Status</th>
+              <td mat-cell *matCellDef="let face">
+                <span class="chip" [class]="statusChipClass(face.status)">
+                  {{ statusLabel(face.status) }}
+                </span>
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="registered">
+              <th mat-header-cell *matHeaderCellDef>Registered</th>
+              <td mat-cell *matCellDef="let face">{{ formatDate(face.registered_at) }}</td>
+            </ng-container>
+            <ng-container matColumnDef="actions">
+              <th mat-header-cell *matHeaderCellDef class="actions-col">Actions</th>
+              <td mat-cell *matCellDef="let face" class="actions-col">
+                <button
+                  mat-icon-button
+                  (click)="onDelete(face)"
+                  title="Delete face"
+                  aria-label="Delete face"
+                >
+                  <mat-icon class="danger-icon">delete</mat-icon>
+                </button>
+              </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+          </table>
+        </div>
+      }
+    </mat-card-content>
+  </mat-card>
+</section>

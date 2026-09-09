@@ -1,0 +1,100 @@
+<section class="page">
+  <mat-card class="hero-card">
+    <div class="hero-content">
+      <div class="hero-text">
+        <span class="hero-eyebrow">Access Control Dashboard</span>
+        <h1 class="hero-title">{{ greeting() }}</h1>
+        <p class="hero-subtitle">
+          Live activity from the SmartLock system — sourced from the <code>access_logs</code> table
+          in Supabase.
+        </p>
+      </div>
+      <div class="hero-icon">
+        <mat-icon>lock</mat-icon>
+      </div>
+    </div>
+  </mat-card>
+
+  <div class="stat-grid">
+    <mat-card class="stat-card stat-primary">
+      <span class="stat-icon"><mat-icon>bolt</mat-icon></span>
+      <div class="stat-body">
+        <span class="stat-value">{{ totalCount() }}</span>
+        <span class="stat-label">Total Events</span>
+      </div>
+    </mat-card>
+    <mat-card class="stat-card stat-success">
+      <span class="stat-icon"><mat-icon>check_circle</mat-icon></span>
+      <div class="stat-body">
+        <span class="stat-value">{{ grantedCount() }}</span>
+        <span class="stat-label">Granted</span>
+      </div>
+    </mat-card>
+    <mat-card class="stat-card stat-danger">
+      <span class="stat-icon"><mat-icon>block</mat-icon></span>
+      <div class="stat-body">
+        <span class="stat-value">{{ deniedCount() }}</span>
+        <span class="stat-label">Denied</span>
+      </div>
+    </mat-card>
+    <mat-card class="stat-card stat-neutral">
+      <span class="stat-icon"><mat-icon>trending_up</mat-icon></span>
+      <div class="stat-body">
+        <span class="stat-value">{{ grantRate() }}%</span>
+        <span class="stat-label">Grant Rate</span>
+      </div>
+    </mat-card>
+  </div>
+
+  <mat-card class="panel-card">
+    <div class="panel-header">
+      <div>
+        <h2 class="panel-title">Recent Activity</h2>
+        <p class="panel-subtitle">The latest unlock attempts recorded by the system</p>
+      </div>
+      <div class="panel-actions">
+        <button mat-stroked-button (click)="loadAccessLogs()" [disabled]="loading()">
+          <mat-icon>refresh</mat-icon>
+          Refresh
+        </button>
+      </div>
+    </div>
+    <mat-card-content>
+      @if (loading()) {
+        <div class="center">
+          <mat-spinner diameter="32" />
+        </div>
+      } @else if (error()) {
+        <div class="state-block">
+          <mat-icon class="state-icon">error_outline</mat-icon>
+          <p class="state-title">Unable to load activity</p>
+          <p class="state-message">{{ error() }}</p>
+        </div>
+      } @else if (logs().length === 0) {
+        <div class="state-block">
+          <mat-icon class="state-icon">history</mat-icon>
+          <p class="state-title">No access events yet</p>
+          <p class="state-message">
+            Events will appear here as the SmartLock device records activity.
+          </p>
+        </div>
+      } @else {
+        <div class="activity-list">
+          @for (log of recentLogs(); track log.id) {
+            <div class="activity-row">
+              <span class="activity-avatar">{{ avatarText(log) }}</span>
+              <div class="activity-main">
+                <span class="activity-name">{{ log.face_name ?? 'Unknown face' }}</span>
+                <span class="activity-meta">{{ formatDate(log.access_time) }}</span>
+              </div>
+              @if (similarityPct(log)) {
+                <span class="activity-similarity">{{ similarityPct(log) }}</span>
+              }
+              <span class="chip" [class]="resultChipClass(log)">{{ resultLabel(log) }}</span>
+            </div>
+          }
+        </div>
+      }
+    </mat-card-content>
+  </mat-card>
+</section>

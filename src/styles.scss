@@ -1,1 +1,214 @@
-/* You can add global styles to this file, and also import other style files */
+// Include theming for Angular Material with `mat.theme()`.
+// This Sass mixin will define CSS variables that are used for styling Angular Material
+// components according to the Material 3 design spec.
+// Learn more about theming and how to use it for your application's
+// custom components at https://material.angular.dev/guide/theming
+@use '@angular/material' as mat;
+
+html {
+  height: 100%;
+  @include mat.theme(
+    (
+      color: (
+        primary: mat.$azure-palette,
+        tertiary: mat.$blue-palette,
+      ),
+      typography: Roboto,
+      density: 0,
+    )
+  );
+}
+
+body {
+  // Default the application to a light color theme. This can be changed to
+  // `dark` to enable the dark color theme, or to `light dark` to defer to the
+  // user's system settings.
+  color-scheme: light;
+
+  // Set a default background, font and text colors for the application using
+  // Angular Material's system-level CSS variables. Learn more about these
+  // variables at https://material.angular.dev/guide/system-variables
+  background-color: var(--mat-sys-surface-container-low);
+  color: var(--mat-sys-on-surface);
+  font: var(--mat-sys-body-medium);
+
+  // Reset the user agent margin.
+  margin: 0;
+  height: 100%;
+}
+
+app-root {
+  display: block;
+  height: 100%;
+}
+
+// Modern thin scrollbars.
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--mat-sys-outline-variant) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: var(--mat-sys-outline-variant);
+  border-radius: 4px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+a {
+  color: var(--mat-sys-primary);
+  text-decoration: none;
+}
+
+/* ---------- Shared page & panel helpers ---------- */
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.panel-card {
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.panel-card > mat-card-content {
+  padding: 0 24px 24px;
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px 16px;
+  padding: 20px 24px 16px;
+}
+
+.panel-title {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--mat-sys-on-surface);
+}
+
+.panel-subtitle {
+  margin: 4px 0 0;
+  font-size: 0.85rem;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.panel-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 0;
+}
+
+.state-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 6px;
+  padding: 40px 0;
+}
+
+.state-icon {
+  width: 40px;
+  height: 40px;
+  font-size: 40px;
+  color: var(--mat-sys-outline);
+  margin-bottom: 6px;
+}
+
+.state-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.state-message {
+  margin: 0;
+  max-width: 420px;
+  font-size: 0.85rem;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.notice {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background-color: var(--mat-sys-surface-container-high);
+  color: var(--mat-sys-on-surface-variant);
+  font-size: 0.85rem;
+}
+
+.table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 12px;
+}
+
+.logs-table {
+  width: 100%;
+}
+
+.mat-mdc-header-row {
+  background-color: var(--mat-sys-surface-container);
+}
+
+.mat-mdc-row:hover {
+  background-color: var(--mat-sys-surface-container-low);
+}
+
+/* ---------- Shared result chips ---------- */
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.chip-granted {
+  background-color: var(--mat-sys-tertiary-container);
+  color: var(--mat-sys-on-tertiary-container);
+}
+
+.chip-denied {
+  background-color: var(--mat-sys-error-container);
+  color: var(--mat-sys-on-error-container);
+}
+
+.chip-warning {
+  background-color: color-mix(in srgb, #f9a825 18%, transparent);
+  color: #7a5a00;
+}
+
+.chip-muted {
+  background-color: var(--mat-sys-surface-container-high);
+  color: var(--mat-sys-on-surface-variant);
+}
