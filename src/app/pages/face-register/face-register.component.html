@@ -2,23 +2,37 @@
   <mat-card class="panel-card">
     <div class="panel-header">
       <div>
-        <h2 class="panel-title">Face Registration</h2>
-        <p class="panel-subtitle">Registered face profiles used to authorize door access</p>
+        <h2 class="panel-title">Đăng ký khuôn mặt</h2>
+        <p class="panel-subtitle">Hồ sơ khuôn mặt đã đăng ký dùng để cấp quyền truy cập cửa</p>
       </div>
       <div class="panel-actions">
+        @if (isAdmin()) {
+          <button mat-flat-button color="primary" (click)="openRegisterDialog()">
+            <mat-icon>face</mat-icon>
+            Đăng ký khuôn mặt
+          </button>
+        }
         <button mat-stroked-button (click)="loadFaces()" [disabled]="loading()">
           <mat-icon>refresh</mat-icon>
-          Refresh
+          Làm mới
         </button>
       </div>
     </div>
     <mat-card-content>
-      <div class="notice camera-notice">
-        <mat-icon>photo_camera</mat-icon>
-        <span
-          >Camera capture is coming soon. Faces can currently be reviewed and managed here.</span
-        >
-      </div>
+      @if (isAdmin()) {
+        <div class="notice camera-notice">
+          <mat-icon>photo_camera</mat-icon>
+          <span
+            >Đăng ký khuôn mặt mới sẽ được lưu ở trạng thái <strong>Chờ duyệt</strong> và chờ admin
+            duyệt.</span
+          >
+        </div>
+      } @else {
+        <div class="notice camera-notice">
+          <mat-icon>lock</mat-icon>
+          <span>Chỉ admin có quyền đăng ký và quản lý hồ sơ khuôn mặt.</span>
+        </div>
+      }
 
       @if (notice() && !error()) {
         <div class="notice">
@@ -33,14 +47,14 @@
       } @else if (error()) {
         <div class="state-block">
           <mat-icon class="state-icon">error_outline</mat-icon>
-          <p class="state-title">Unable to load faces</p>
+          <p class="state-title">Không thể tải hồ sơ khuôn mặt</p>
           <p class="state-message">{{ error() }}</p>
         </div>
       } @else if (faces().length === 0) {
         <div class="state-block">
           <mat-icon class="state-icon">face</mat-icon>
-          <p class="state-title">No faces registered yet</p>
-          <p class="state-message">Registered faces will appear here once capture is available.</p>
+          <p class="state-title">Chưa có hồ sơ khuôn mặt nào</p>
+          <p class="state-message">Hồ sơ khuôn mặt sẽ xuất hiện tại đây khi có tính năng chụp ảnh.</p>
         </div>
       } @else {
         <div class="table-wrap">
@@ -75,7 +89,20 @@
               <td mat-cell *matCellDef="let face" class="actions-col">
                 <button
                   mat-icon-button
+                  (click)="onRegisterFace(face)"
+                  [disabled]="registeringId() !== null"
+                  title="Register face on device (opens scan on Pi)"
+                  aria-label="Register face on device"
+                >
+                  <mat-icon>camera_alt</mat-icon>
+                </button>
+                @if (registeringId() === face.id) {
+                  <mat-spinner diameter="20" class="row-spinner" />
+                }
+                <button
+                  mat-icon-button
                   (click)="onDelete(face)"
+                  [disabled]="registeringId() !== null"
                   title="Delete face"
                   aria-label="Delete face"
                 >
