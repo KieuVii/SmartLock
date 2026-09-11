@@ -9,7 +9,7 @@
   }
 
   <form class="dialog-form" [formGroup]="form" (ngSubmit)="onSubmit()">
-    <mat-form-field appearance="outline">
+    <mat-form-field appearance="outline" style="margin-top: 10px;">
       <mat-label>Họ và tên</mat-label>
       <input matInput formControlName="full_name" placeholder="VD: Nguyễn Văn A" required />
       @if (form.controls.full_name.hasError('required')) {
