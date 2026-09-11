@@ -3,7 +3,7 @@
     <div class="panel-header">
       <div>
         <h2 class="panel-title">Thiết bị</h2>
-        <p class="panel-subtitle">Quản lý thiết bị SmartLock — khởi động lại service từ xa, không cần SSH</p>
+        <p class="panel-subtitle">Quản lý thiết bị SmartLock — khởi động lại service từ xa</p>
       </div>
       <button mat-stroked-button (click)="refresh()" [disabled]="loading()">
         <mat-icon>refresh</mat-icon>
@@ -46,12 +46,6 @@
             <span>{{ result()!.text }}</span>
           </div>
         }
-
-        <p class="hint">
-          Lệnh khởi động lại đi qua <code>device_commands</code>: Pi nhận lệnh, thoát sạch và được systemd bật lại tự
-          động (<code>Restart=always</code>) — không cần quyền sudo. Nếu Pi kẹt hoàn toàn (mất mạng, không nhận được
-          lệnh), watchdog systemd (<code>WatchdogSec=30</code>) sẽ tự khởi động lại Pi trong ~30s.
-        </p>
       }
     </mat-card-content>
   </mat-card>

@@ -65,6 +65,22 @@ export class DeviceControlComponent {
     return true;
   }
 
+  private async isDeviceOnline(): Promise<boolean> {
+    try {
+      const device = await this.deviceService.getDeviceByCode(DOOR_DEVICE_CODE);
+      if (!device || device.status !== 'online') {
+        return false;
+      }
+      if (device.last_seen) {
+        const ageSec = (Date.now() - new Date(device.last_seen).getTime()) / 1000;
+        return ageSec <= ONLINE_GRACE_SEC;
+      }
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
   doorStatusLabel(): string {
     return this.device()?.door_status === 'unlocked' ? 'Mở (unlocked)' : 'Khóa (locked)';
   }
@@ -114,6 +130,25 @@ export class DeviceControlComponent {
     }
   }
 
+  private pollDeviceOnline(): void {
+    let elapsed = 0;
+    const timer = setInterval(async () => {
+      elapsed += POLL_INTERVAL;
+      const online = await this.isDeviceOnline();
+      if (online || elapsed >= 45000) {
+        clearInterval(timer);
+        await this.refresh();
+        this.result.set({
+          ok: true,
+          text: online
+            ? 'Service đã khởi động lại thành công — thiết bị online trở lại.'
+            : 'Chưa thấy thiết bị online trở lại sau 45s. Kiểm tra nguồn Pi hoặc log fina.',
+        });
+      }
+    }, POLL_INTERVAL);
+    this.destroyRef.onDestroy(() => clearInterval(timer));
+  }
+
   private pollCommand(cmdId: string): void {
     let elapsed = 0;
     const timer = setInterval(async () => {
@@ -127,8 +162,8 @@ export class DeviceControlComponent {
           if (!cmd) {
             this.result.set({ ok: false, text: 'Không lấy được trạng thái lệnh.' });
           } else if (cmd.status === 'done') {
-            this.result.set({ ok: true, text: 'Pi đã nhận lệnh và đang khởi động lại. Service sẽ online trở lại sau ~10-30s.' });
-            setTimeout(() => void this.refresh(), 10000);
+            this.result.set({ ok: true, text: 'Pi đã nhận lệnh và đang khởi động lại...' });
+            this.pollDeviceOnline();
           } else {
             const detail = cmd.result_message ? `: ${cmd.result_message}` : '';
             this.result.set({ ok: false, text: `Khởi động lại thất bại${detail}.` });
