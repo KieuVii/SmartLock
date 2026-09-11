@@ -3,6 +3,8 @@ import { SupabaseService } from './supabase.service';
 
 export type AccessResult = 'granted' | 'denied' | 'no_face' | 'unknown' | 'error';
 
+export type AccessType = 'checkin' | 'checkout';
+
 export interface AccessLog {
   id: string;
   user_id?: string | null;
@@ -11,6 +13,7 @@ export interface AccessLog {
   face_profile_id?: string | null;
   face_name?: string | null;
   result: AccessResult;
+  access_type?: AccessType | null;
   similarity?: number | null;
   threshold?: number | null;
   captured_image_url?: string | null;
@@ -31,6 +34,19 @@ export class AccessLogService {
     const { data, error } = await this.supabase
       .from('access_logs')
       .select('*')
+      .order('access_time', { ascending: false })
+      .limit(limit);
+    if (error) {
+      throw error;
+    }
+    return (data ?? []) as AccessLog[];
+  }
+
+  async listAccessLogsByUser(userId: string, limit = 100): Promise<AccessLog[]> {
+    const { data, error } = await this.supabase
+      .from('access_logs')
+      .select('*')
+      .eq('user_id', userId)
       .order('access_time', { ascending: false })
       .limit(limit);
     if (error) {

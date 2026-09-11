@@ -208,6 +208,16 @@ a {
   color: #7a5a00;
 }
 
+.chip-checkin {
+  background-color: color-mix(in srgb, #1e88e5 18%, transparent);
+  color: #0d47a1;
+}
+
+.chip-checkout {
+  background-color: color-mix(in srgb, #43a047 18%, transparent);
+  color: #1b5e20;
+}
+
 .chip-muted {
   background-color: var(--mat-sys-surface-container-high);
   color: var(--mat-sys-on-surface-variant);

@@ -1,0 +1,60 @@
+<section class="page">
+  <mat-card class="panel-card">
+    <div class="panel-header">
+      <div>
+        <h2 class="panel-title">Checkin / Checkout</h2>
+        <p class="panel-subtitle">Điểm danh bằng khuôn mặt trên thiết bị</p>
+      </div>
+    </div>
+    <mat-card-content>
+      @if (deviceOnline() === false) {
+        <div class="notice warning">
+          <mat-icon>wifi_off</mat-icon>
+          <span>Thiết bị {{ DOOR_DEVICE_CODE }} đang offline — lệnh sẽ không được xử lý.</span>
+        </div>
+      }
+
+      <div class="action-grid">
+        <button
+          mat-flat-button
+          class="action-btn checkin"
+          (click)="run('start_checkin')"
+          [disabled]="busy()"
+        >
+          <mat-icon>login</mat-icon>
+          <span class="btn-label">Checkin</span>
+          <span class="btn-hint">Điểm danh vào</span>
+          @if (busy() && busyAction() === 'start_checkin') {
+            <mat-spinner diameter="22" />
+          }
+        </button>
+
+        <button
+          mat-flat-button
+          class="action-btn checkout"
+          (click)="run('start_checkout')"
+          [disabled]="busy()"
+        >
+          <mat-icon>logout</mat-icon>
+          <span class="btn-label">Checkout</span>
+          <span class="btn-hint">Điểm danh ra</span>
+          @if (busy() && busyAction() === 'start_checkout') {
+            <mat-spinner diameter="22" />
+          }
+        </button>
+      </div>
+
+      @if (result(); as res) {
+        <div class="notice" [class.success]="res.ok" [class.error]="!res.ok">
+          <mat-icon>{{ res.ok ? 'check_circle' : 'error_outline' }}</mat-icon>
+          <div>
+            <div>{{ res.text }}</div>
+            @if (res.detail) {
+              <div class="result-detail">{{ res.detail }}</div>
+            }
+          </div>
+        </div>
+      }
+    </mat-card-content>
+  </mat-card>
+</section>

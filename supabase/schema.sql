@@ -220,6 +220,9 @@ create table if not exists public.access_logs (
   result text not null
     check (result in ('granted', 'denied', 'no_face', 'unknown', 'error')),
 
+  access_type text
+    check (access_type in ('checkin', 'checkout')),
+
   similarity real,
   threshold real default 0.32,
 
@@ -296,7 +299,9 @@ create table if not exists public.device_commands (
         'lock_door',
         'restart_camera',
         'start_register_face',
-        'sync_face_db'
+        'sync_face_db',
+        'start_checkin',
+        'start_checkout'
       )
     ),
 

@@ -34,6 +34,13 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'checkin-checkout',
+        loadComponent: () =>
+          import('./pages/checkin-checkout/checkin-checkout.component').then(
+            (m) => m.CheckinCheckoutComponent,
+          ),
+      },
+      {
         path: 'access-history',
         loadComponent: () =>
           import('./pages/access-history/access-history.component').then(

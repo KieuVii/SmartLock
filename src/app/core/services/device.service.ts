@@ -24,6 +24,8 @@ export interface DeviceCommand {
 
 export const DOOR_DEVICE_CODE = 'DOOR_01';
 
+export type DeviceAction = 'start_checkin' | 'start_checkout';
+
 @Injectable({
   providedIn: 'root',
 })
@@ -47,12 +49,29 @@ export class DeviceService {
     faceName: string,
     requestedBy?: string | null,
   ): Promise<DeviceCommand> {
+    return this.sendCommand(deviceId, 'start_register_face', { face_name: faceName }, requestedBy);
+  }
+
+  async sendActionCommand(
+    deviceId: string,
+    command: DeviceAction,
+    requestedBy?: string | null,
+  ): Promise<DeviceCommand> {
+    return this.sendCommand(deviceId, command, {}, requestedBy);
+  }
+
+  private async sendCommand(
+    deviceId: string,
+    command: string,
+    payload: Record<string, unknown>,
+    requestedBy?: string | null,
+  ): Promise<DeviceCommand> {
     const { data, error } = await this.supabase
       .from('device_commands')
       .insert({
         device_id: deviceId,
-        command: 'start_register_face',
-        payload: { face_name: faceName },
+        command,
+        payload,
         status: 'pending',
         requested_by: requestedBy ?? null,
       })

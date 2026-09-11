@@ -10,6 +10,7 @@ import {
   type AccessLog,
   type AccessResult,
 } from '../../core/services/access-log.service';
+import { AuthService } from '../../core/services/auth.service';
 import { formatDateTime, shortId } from '../../core/utils/format';
 
 type ResultFilter = 'all' | AccessResult;
@@ -29,9 +30,11 @@ type ResultFilter = 'all' | AccessResult;
 })
 export class AccessHistoryComponent {
   private readonly accessLog = inject(AccessLogService);
+  private readonly auth = inject(AuthService);
 
   readonly displayedColumns: string[] = [
     'access_time',
+    'access_type',
     'face_name',
     'result',
     'similarity',
@@ -67,7 +70,7 @@ export class AccessHistoryComponent {
     this.loading.set(true);
     this.error.set(null);
     try {
-      const logs = await this.accessLog.listAccessLogs();
+      const logs = await this.fetchLogs();
       this.logs.set(logs);
     } catch (err) {
       this.error.set((err as Error).message);
@@ -76,18 +79,36 @@ export class AccessHistoryComponent {
     }
   }
 
+  private async fetchLogs(): Promise<AccessLog[]> {
+    if (await this.auth.isCurrentUserAdmin()) {
+      return this.accessLog.listAccessLogs();
+    }
+    const profile = await this.auth.getCurrentProfile();
+    return profile ? this.accessLog.listAccessLogsByUser(profile.id) : [];
+  }
+
   onFilterChange(value: ResultFilter): void {
     this.resultFilter.set(value);
   }
 
   resultLabel(value: ResultFilter): string {
     if (value === 'all') {
-      return 'All results';
+      return 'Tất cả kết quả';
     }
-    if (value === 'no_face') {
-      return 'No face';
+    switch (value) {
+      case 'no_face':
+        return 'Không có khuôn mặt';
+      case 'granted':
+        return 'Được phép';
+      case 'denied':
+        return 'Bị từ chối';
+      case 'unknown':
+        return 'Không xác định';
+      case 'error':
+        return 'Lỗi';
+      default:
+        return value;
     }
-    return value.charAt(0).toUpperCase() + value.slice(1);
   }
 
   resultChipClass(log: AccessLog): string {
@@ -101,6 +122,13 @@ export class AccessHistoryComponent {
       default:
         return 'chip-muted';
     }
+  }
+
+  accessTypeLabel(accessType: AccessLog['access_type']): string {
+    if (!accessType) {
+      return '—';
+    }
+    return accessType === 'checkin' ? 'Checkin' : 'Checkout';
   }
 
   formatDate(value?: string | null): string {
