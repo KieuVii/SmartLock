@@ -138,6 +138,7 @@ export class DeviceControlComponent {
       if (online || elapsed >= 45000) {
         clearInterval(timer);
         await this.refresh();
+        this.restarting.set(false);
         this.result.set({
           ok: true,
           text: online
@@ -158,13 +159,15 @@ export class DeviceControlComponent {
         const terminal: DeviceCommandStatus[] = ['done', 'failed', 'cancelled'];
         if (!cmd || terminal.includes(cmd.status)) {
           clearInterval(timer);
-          this.restarting.set(false);
           if (!cmd) {
+            this.restarting.set(false);
             this.result.set({ ok: false, text: 'Không lấy được trạng thái lệnh.' });
           } else if (cmd.status === 'done') {
+            // restarting giu TRUE: chan bam them cho den khi Pi online lai
             this.result.set({ ok: true, text: 'Pi đã nhận lệnh và đang khởi động lại...' });
             this.pollDeviceOnline();
           } else {
+            this.restarting.set(false);
             const detail = cmd.result_message ? `: ${cmd.result_message}` : '';
             this.result.set({ ok: false, text: `Khởi động lại thất bại${detail}.` });
           }
