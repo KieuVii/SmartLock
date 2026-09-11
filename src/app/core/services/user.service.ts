@@ -54,6 +54,14 @@ export class UserService {
     return (data ?? null) as Profile | null;
   }
 
+  async createProfile(values: Partial<Profile>): Promise<Profile> {
+    const { data, error } = await this.supabase.from('profiles').insert(values).select().single();
+    if (error) {
+      throw error;
+    }
+    return data as Profile;
+  }
+
   async updateProfile(id: string, values: Partial<Profile>): Promise<Profile> {
     const { data, error } = await this.supabase
       .from('profiles')

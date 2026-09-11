@@ -35,7 +35,7 @@ export class Header {
 
   readonly user = signal<User | null>(null);
   readonly alerts = signal<Alert[]>([]);
-  readonly pageTitle = signal('Dashboard');
+  readonly pageTitle = signal('Bảng điều khiển');
 
   readonly userInitials = computed(() =>
     initialsFromName(
@@ -48,11 +48,11 @@ export class Header {
   readonly recentAlerts = computed(() => this.alerts().slice(0, 5));
 
   private readonly pageTitles: Record<string, string> = {
-    '/dashboard': 'Dashboard',
-    '/face-register': 'Face Registration',
-    '/access-history': 'Access History',
-    '/user-management': 'User Management',
-    '/alert-page': 'Alerts',
+    '/dashboard': 'Bảng điều khiển',
+    '/face-register': 'Đăng ký khuôn mặt',
+    '/access-history': 'Lịch sử truy cập',
+    '/user-management': 'Quản lý người dùng',
+    '/alert-page': 'Cảnh báo',
   };
 
   constructor() {

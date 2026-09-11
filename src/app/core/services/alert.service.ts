@@ -51,6 +51,18 @@ export class AlertService {
     return (data ?? []) as Alert[];
   }
 
+  async listAlertsByUser(userId: string): Promise<Alert[]> {
+    const { data, error } = await this.supabase
+      .from('alerts')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false });
+    if (error) {
+      throw error;
+    }
+    return (data ?? []) as Alert[];
+  }
+
   async getAlert(id: string): Promise<Alert | null> {
     const { data, error } = await this.supabase.from('alerts').select('*').eq('id', id).single();
     if (error) {

@@ -1,0 +1,82 @@
+<h2 mat-dialog-title>Đăng ký khuôn mặt</h2>
+
+<mat-dialog-content>
+  <p class="dialog-intro">
+    Tạo hồ sơ khuôn mặt mới. Hồ sơ sẽ ở trạng thái <strong>Chờ duyệt</strong> và chờ admin duyệt
+    trước khi được đồng bộ xuống thiết bị.
+  </p>
+
+  @if (error()) {
+    <div class="notice dialog-error">
+      <mat-icon>error_outline</mat-icon>
+      <span>{{ error() }}</span>
+    </div>
+  }
+
+  @if (loadingOptions()) {
+    <div class="center">
+      <mat-spinner diameter="32" />
+    </div>
+  } @else {
+    <form class="dialog-form" [formGroup]="form" (ngSubmit)="onSubmit()">
+      <mat-form-field appearance="outline">
+        <mat-label>Người dùng</mat-label>
+        <mat-select formControlName="user_id" required>
+          @for (profile of profiles(); track profile.id) {
+            <mat-option [value]="profile.id">
+              {{ profile.full_name }}{{ profile.email ? ' · ' + profile.email : '' }}
+            </mat-option>
+          }
+        </mat-select>
+        @if (form.controls.user_id.hasError('required')) {
+          <mat-error>Vui lòng chọn người dùng.</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Tên khuôn mặt</mat-label>
+        <input matInput formControlName="face_name" placeholder="VD: nguyen_van_a" required />
+        <mat-hint>Phải trùng với tên lưu trong face_db.npy</mat-hint>
+        @if (form.controls.face_name.hasError('required')) {
+          <mat-error>Vui lòng nhập tên khuôn mặt.</mat-error>
+        }
+        @if (form.controls.face_name.hasError('maxlength')) {
+          <mat-error>Tên khuôn mặt tối đa 120 ký tự.</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Phòng (không bắt buộc)</mat-label>
+        <mat-select formControlName="room_id">
+          <mat-option [value]="''">Không gán phòng</mat-option>
+          @for (room of rooms(); track room.id) {
+            <mat-option [value]="room.id">{{ room.room_name }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Ghi chú</mat-label>
+        <textarea matInput formControlName="note" rows="3"></textarea>
+      </mat-form-field>
+    </form>
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button type="button" (click)="onCancel()" [disabled]="saving()">Hủy</button>
+  <button
+    mat-flat-button
+    color="primary"
+    type="button"
+    (click)="onSubmit()"
+    [disabled]="form.invalid || loadingOptions() || saving()"
+  >
+    @if (saving()) {
+      <mat-spinner diameter="18" />
+    } @else {
+      <mat-icon>face</mat-icon>
+    }
+    Đăng ký
+  </button>
+</mat-dialog-actions>

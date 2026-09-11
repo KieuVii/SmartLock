@@ -3,7 +3,7 @@
     <div class="brand">
       <span class="brand-logo"><mat-icon>lock</mat-icon></span>
       <h1 class="brand-title">SmartLock</h1>
-      <p class="brand-subtitle">Sign in to your account</p>
+      <p class="brand-subtitle">Đăng nhập vào tài khoản của bạn</p>
     </div>
 
     <form [formGroup]="form" (ngSubmit)="onSubmit()">
@@ -12,12 +12,12 @@
         <input matInput type="email" formControlName="email" autocomplete="email" />
         <mat-icon matPrefix>mail</mat-icon>
         @if (form.controls.email.hasError('email')) {
-          <mat-error>Enter a valid email</mat-error>
+          <mat-error>Email không hợp lệ</mat-error>
         }
       </mat-form-field>
 
       <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Password</mat-label>
+        <mat-label>Mật khẩu</mat-label>
         <input
           matInput
           type="password"
@@ -26,7 +26,7 @@
         />
         <mat-icon matPrefix>lock</mat-icon>
         @if (form.controls.password.hasError('minlength')) {
-          <mat-error>Password must be at least 6 characters</mat-error>
+          <mat-error>Mật khẩu phải có ít nhất 6 ký tự</mat-error>
         }
       </mat-form-field>
 
@@ -47,11 +47,11 @@
         @if (loading()) {
           <mat-spinner diameter="20" />
         } @else {
-          <span>Sign In</span>
+          <span>Đăng nhập</span>
         }
       </button>
     </form>
 
-    <p class="auth-alt">Don't have an account? <a routerLink="/sign-up">Sign up</a></p>
+    <p class="auth-alt">Chưa có tài khoản? <a routerLink="/sign-up">Đăng ký</a></p>
   </div>
 </div>

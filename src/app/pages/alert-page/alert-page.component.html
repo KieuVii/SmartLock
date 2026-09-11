@@ -2,13 +2,13 @@
   <mat-card class="panel-card">
     <div class="panel-header">
       <div>
-        <h2 class="panel-title">Alerts</h2>
-        <p class="panel-subtitle">Security alerts — failed attempts, device issues and more</p>
+        <h2 class="panel-title">Cảnh báo</h2>
+        <p class="panel-subtitle">Cảnh báo bảo mật — các lần thất bại, sự cố thiết bị và nhiều hơn nữa</p>
       </div>
       <div class="panel-actions">
         <button mat-stroked-button (click)="loadAlerts()" [disabled]="loading()">
           <mat-icon>refresh</mat-icon>
-          Refresh
+          Làm mới
         </button>
       </div>
     </div>
@@ -26,20 +26,20 @@
       } @else if (error()) {
         <div class="state-block">
           <mat-icon class="state-icon">error_outline</mat-icon>
-          <p class="state-title">Unable to load alerts</p>
+          <p class="state-title">Không thể tải cảnh báo</p>
           <p class="state-message">{{ error() }}</p>
         </div>
       } @else if (alerts().length === 0) {
         <div class="state-block">
           <mat-icon class="state-icon">notifications_off</mat-icon>
-          <p class="state-title">All clear</p>
-          <p class="state-message">No security alerts have been recorded.</p>
+          <p class="state-title">Không có cảnh báo</p>
+          <p class="state-message">Chưa có cảnh báo bảo mật nào được ghi nhận.</p>
         </div>
       } @else {
         <div class="table-wrap">
           <table mat-table [dataSource]="alerts()" class="logs-table">
             <ng-container matColumnDef="severity">
-              <th mat-header-cell *matHeaderCellDef>Severity</th>
+              <th mat-header-cell *matHeaderCellDef>Mức độ</th>
               <td mat-cell *matCellDef="let alert">
                 <span class="chip" [class]="severityChipClass(alert.severity)">
                   <mat-icon class="chip-icon">{{ severityIcon(alert.severity) }}</mat-icon>
@@ -48,7 +48,7 @@
               </td>
             </ng-container>
             <ng-container matColumnDef="alert">
-              <th mat-header-cell *matHeaderCellDef>Alert</th>
+              <th mat-header-cell *matHeaderCellDef>Cảnh báo</th>
               <td mat-cell *matCellDef="let alert">
                 <div class="alert-cell">
                   <span class="alert-title">{{ alert.title }}</span>
@@ -59,11 +59,11 @@
               </td>
             </ng-container>
             <ng-container matColumnDef="created">
-              <th mat-header-cell *matHeaderCellDef>Created</th>
+              <th mat-header-cell *matHeaderCellDef>Thời gian tạo</th>
               <td mat-cell *matCellDef="let alert">{{ formatDate(alert.created_at) }}</td>
             </ng-container>
             <ng-container matColumnDef="status">
-              <th mat-header-cell *matHeaderCellDef>Status</th>
+              <th mat-header-cell *matHeaderCellDef>Trạng thái</th>
               <td mat-cell *matCellDef="let alert">
                 <span class="chip" [class]="statusChipClass(alert.status)">
                   {{ statusLabel(alert.status) }}
@@ -71,14 +71,14 @@
               </td>
             </ng-container>
             <ng-container matColumnDef="actions">
-              <th mat-header-cell *matHeaderCellDef class="actions-col">Actions</th>
+              <th mat-header-cell *matHeaderCellDef class="actions-col">Thao tác</th>
               <td mat-cell *matCellDef="let alert" class="actions-col">
                 @if (alert.status === 'new') {
                   <button
                     mat-icon-button
                     (click)="onMarkSeen(alert)"
-                    title="Mark as seen"
-                    aria-label="Mark as seen"
+                    title="Đánh dấu đã xem"
+                    aria-label="Đánh dấu đã xem"
                   >
                     <mat-icon>visibility</mat-icon>
                   </button>
@@ -87,8 +87,8 @@
                   <button
                     mat-icon-button
                     (click)="onResolve(alert)"
-                    title="Resolve"
-                    aria-label="Resolve"
+                    title="Xử lý"
+                    aria-label="Xử lý"
                   >
                     <mat-icon>done</mat-icon>
                   </button>
@@ -96,8 +96,8 @@
                 <button
                   mat-icon-button
                   (click)="onDelete(alert)"
-                  title="Delete"
-                  aria-label="Delete"
+                  title="Xóa"
+                  aria-label="Xóa"
                 >
                   <mat-icon class="danger-icon">delete</mat-icon>
                 </button>

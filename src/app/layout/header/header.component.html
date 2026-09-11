@@ -1,5 +1,5 @@
 <mat-toolbar class="app-toolbar">
-  <button mat-icon-button (click)="onMenuClick()" aria-label="Toggle navigation">
+  <button mat-icon-button (click)="onMenuClick()" aria-label="Chuyển menu">
     <mat-icon>menu</mat-icon>
   </button>
 
@@ -11,7 +11,7 @@
     <button
       mat-icon-button
       [matMenuTriggerFor]="alertsMenu"
-      aria-label="Notifications"
+      aria-label="Thông báo"
       [matBadge]="newAlertsCount()"
       matBadgeColor="warn"
       [matBadgeHidden]="newAlertsCount() === 0"
@@ -20,9 +20,9 @@
     </button>
     <mat-menu #alertsMenu="matMenu" class="alerts-menu">
       <div class="menu-header">
-        <span>Notifications</span>
+        <span>Thông báo</span>
         @if (newAlertsCount() > 0) {
-          <span class="menu-header-count">{{ newAlertsCount() }} new</span>
+          <span class="menu-header-count">{{ newAlertsCount() }} mới</span>
         }
       </div>
       @for (alert of recentAlerts(); track alert.id) {
@@ -34,18 +34,18 @@
           </span>
         </button>
       } @empty {
-        <div class="menu-empty">No notifications</div>
+        <div class="menu-empty">Không có thông báo</div>
       }
       <button mat-menu-item routerLink="/alert-page">
         <mat-icon>chevron_right</mat-icon>
-        <span>View all alerts</span>
+        <span>Xem tất cả cảnh báo</span>
       </button>
     </mat-menu>
 
     <button
       class="avatar-button"
       [matMenuTriggerFor]="userMenu"
-      aria-label="Account menu"
+      aria-label="Menu tài khoản"
       matRipple
     >
       <span class="avatar">{{ userInitials() }}</span>
@@ -53,11 +53,11 @@
     <mat-menu #userMenu="matMenu">
       <div class="user-header">
         <span class="avatar avatar-lg">{{ userInitials() }}</span>
-        <span class="user-email">{{ user()?.email ?? 'Signed out' }}</span>
+        <span class="user-email">{{ user()?.email ?? 'Đã đăng xuất' }}</span>
       </div>
       <button mat-menu-item (click)="onLogout()">
         <mat-icon>logout</mat-icon>
-        <span>Logout</span>
+        <span>Đăng xuất</span>
       </button>
     </mat-menu>
   </div>

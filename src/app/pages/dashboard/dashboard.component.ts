@@ -38,11 +38,11 @@ export class DashboardComponent {
   readonly greeting = computed(() => {
     const email = this.user()?.email;
     if (!email) {
-      return 'Welcome back';
+      return 'Chào mừng trở lại';
     }
     const local = email.split('@')[0] ?? '';
     const name = local.replace(/[._\-]+/g, ' ').trim();
-    return name ? `Welcome back, ${name}` : 'Welcome back';
+    return name ? `Chào mừng trở lại, ${name}` : 'Chào mừng trở lại';
   });
 
   constructor() {
@@ -54,13 +54,21 @@ export class DashboardComponent {
     this.loading.set(true);
     this.error.set(null);
     try {
-      const logs = await this.accessLog.listAccessLogs();
+      const logs = await this.fetchLogs();
       this.logs.set(logs);
     } catch (err) {
       this.error.set((err as Error).message);
     } finally {
       this.loading.set(false);
     }
+  }
+
+  private async fetchLogs(): Promise<AccessLog[]> {
+    if (await this.auth.isCurrentUserAdmin()) {
+      return this.accessLog.listAccessLogs();
+    }
+    const profile = await this.auth.getCurrentProfile();
+    return profile ? this.accessLog.listAccessLogsByUser(profile.id) : [];
   }
 
   formatDate(value?: string | null): string {
@@ -95,9 +103,17 @@ export class DashboardComponent {
   private resultLabelFromValue(result: AccessLog['result']): string {
     switch (result) {
       case 'no_face':
-        return 'No face';
+        return 'Không có khuôn mặt';
+      case 'granted':
+        return 'Được phép';
+      case 'denied':
+        return 'Bị từ chối';
+      case 'unknown':
+        return 'Không xác định';
+      case 'error':
+        return 'Lỗi';
       default:
-        return result.charAt(0).toUpperCase() + result.slice(1);
+        return result;
     }
   }
 }

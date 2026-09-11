@@ -10,6 +10,7 @@ import {
   type AlertSeverity,
   type AlertStatus,
 } from '../../core/services/alert.service';
+import { AuthService } from '../../core/services/auth.service';
 import { formatDateTime } from '../../core/utils/format';
 
 @Component({
@@ -26,6 +27,7 @@ import { formatDateTime } from '../../core/utils/format';
 })
 export class AlertPageComponent {
   private readonly alertService = inject(AlertService);
+  private readonly auth = inject(AuthService);
 
   readonly displayedColumns: string[] = ['severity', 'alert', 'created', 'status', 'actions'];
   readonly alerts = signal<Alert[]>([]);
@@ -42,13 +44,21 @@ export class AlertPageComponent {
     this.error.set(null);
     this.notice.set(null);
     try {
-      const alerts = await this.alertService.listAlerts();
+      const alerts = await this.fetchAlerts();
       this.alerts.set(alerts);
     } catch (err) {
       this.error.set((err as Error).message);
     } finally {
       this.loading.set(false);
     }
+  }
+
+  private async fetchAlerts(): Promise<Alert[]> {
+    if (await this.auth.isCurrentUserAdmin()) {
+      return this.alertService.listAlerts();
+    }
+    const profile = await this.auth.getCurrentProfile();
+    return profile ? this.alertService.listAlertsByUser(profile.id) : [];
   }
 
   async onMarkSeen(alert: Alert): Promise<void> {
@@ -106,8 +116,25 @@ export class AlertPageComponent {
     }
   }
 
-  statusLabel(status: AlertStatus): string {
-    return status.charAt(0).toUpperCase() + status.slice(1);
+  statusLabel(status: AlertSeverity | AlertStatus): string {
+    switch (status) {
+      case 'critical':
+        return 'Nghiêm trọng';
+      case 'high':
+        return 'Cao';
+      case 'medium':
+        return 'Trung bình';
+      case 'low':
+        return 'Thấp';
+      case 'new':
+        return 'Mới';
+      case 'seen':
+        return 'Đã xem';
+      case 'resolved':
+        return 'Đã xử lý';
+      default:
+        return status;
+    }
   }
 
   formatDate(value?: string | null): string {

@@ -69,7 +69,7 @@ export class FaceRegisterComponent {
     const face = await firstValueFrom(ref.afterClosed());
     if (face) {
       await this.loadFaces();
-      this.notice.set(`Face "${face.face_name}" registered with status Pending.`);
+      this.notice.set(`Hồ sơ "${face.face_name}" đã được đăng ký với trạng thái Chờ duyệt.`);
     }
   }
 
@@ -188,7 +188,7 @@ export class FaceRegisterComponent {
     try {
       await this.faceService.deleteFace(face.id);
       this.faces.update((list) => list.filter((f) => f.id !== face.id));
-      this.notice.set(`Face "${face.face_name}" deleted.`);
+      this.notice.set(`Hồ sơ "${face.face_name}" đã bị xóa.`);
     } catch (err) {
       this.notice.set((err as Error).message);
     }
@@ -212,15 +212,15 @@ export class FaceRegisterComponent {
   statusLabel(status: FaceStatus): string {
     switch (status) {
       case 'not_registered':
-        return 'Not registered';
+        return 'Chưa đăng ký';
       case 'registered':
-        return 'Registered';
+        return 'Đã đăng ký';
       case 'pending':
-        return 'Pending';
+        return 'Chờ duyệt';
       case 'rejected':
-        return 'Rejected';
+        return 'Bị từ chối';
       case 'disabled':
-        return 'Disabled';
+        return 'Đã vô hiệu';
       default:
         return status;
     }

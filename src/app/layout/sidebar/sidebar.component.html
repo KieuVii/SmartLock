@@ -5,14 +5,14 @@
     </span>
     <div class="brand-text">
       <span class="brand-name">SmartLock</span>
-      <span class="brand-sub">Access Control</span>
+      <span class="brand-sub">Kiểm soát truy cập</span>
     </div>
   </div>
 
   <div class="nav-section">
-    <span class="section-label">Main</span>
+    <span class="section-label">Chính</span>
     <nav class="nav-list">
-      @for (item of navItems; track item.path) {
+      @for (item of navItems(); track item.path) {
         <a class="nav-item" [routerLink]="item.path" routerLinkActive="active">
           <mat-icon class="nav-icon">{{ item.icon }}</mat-icon>
           <span class="nav-label">{{ item.label }}</span>

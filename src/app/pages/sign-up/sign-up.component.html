@@ -2,25 +2,25 @@
   <div class="auth-card">
     <div class="brand">
       <span class="brand-logo"><mat-icon>lock</mat-icon></span>
-      <h1 class="brand-title">Create your account</h1>
-      <p class="brand-subtitle">Register a new SmartLock user</p>
+      <h1 class="brand-title">Tạo tài khoản của bạn</h1>
+      <p class="brand-subtitle">Đăng ký người dùng SmartLock mới</p>
     </div>
 
     @if (success()) {
       <div class="success-block">
         <mat-icon color="primary" class="success-icon">mark_email_read</mat-icon>
-        <p class="success-title">Registration successful!</p>
-        <p class="success-note">Check your email to confirm your account, then sign in.</p>
-        <button mat-flat-button color="primary" routerLink="/login">Go to Sign In</button>
+        <p class="success-title">Đăng ký thành công!</p>
+        <p class="success-note">Kiểm tra email để xác nhận tài khoản, sau đó đăng nhập.</p>
+        <button mat-flat-button color="primary" routerLink="/login">Đi đến Đăng nhập</button>
       </div>
     } @else {
       <form [formGroup]="form" (ngSubmit)="onSubmit()">
         <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Full name</mat-label>
+          <mat-label>Họ và tên</mat-label>
           <input matInput type="text" formControlName="fullName" autocomplete="name" />
           <mat-icon matPrefix>person</mat-icon>
           @if (form.controls.fullName.hasError('required')) {
-            <mat-error>Full name is required</mat-error>
+            <mat-error>Vui lòng nhập họ và tên</mat-error>
           }
         </mat-form-field>
 
@@ -29,21 +29,21 @@
           <input matInput type="email" formControlName="email" autocomplete="email" />
           <mat-icon matPrefix>mail</mat-icon>
           @if (form.controls.email.hasError('email')) {
-            <mat-error>Enter a valid email</mat-error>
+            <mat-error>Vui lòng nhập email hợp lệ</mat-error>
           }
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Password</mat-label>
+          <mat-label>Mật khẩu</mat-label>
           <input matInput type="password" formControlName="password" autocomplete="new-password" />
           <mat-icon matPrefix>lock</mat-icon>
           @if (form.controls.password.hasError('minlength')) {
-            <mat-error>Password must be at least 6 characters</mat-error>
+            <mat-error>Mật khẩu phải có ít nhất 6 ký tự</mat-error>
           }
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Confirm password</mat-label>
+          <mat-label>Xác nhận mật khẩu</mat-label>
           <input
             matInput
             type="password"
@@ -52,7 +52,7 @@
           />
           <mat-icon matPrefix>lock</mat-icon>
           @if (form.hasError('passwordsMismatch') && form.controls.confirmPassword.touched) {
-            <mat-error>Passwords do not match</mat-error>
+            <mat-error>Mật khẩu không khớp</mat-error>
           }
         </mat-form-field>
 
@@ -73,12 +73,12 @@
           @if (loading()) {
             <mat-spinner diameter="20" />
           } @else {
-            <span>Sign Up</span>
+            <span>Đăng ký</span>
           }
         </button>
       </form>
 
-      <p class="auth-alt">Already have an account? <a routerLink="/login">Sign in</a></p>
+      <p class="auth-alt">Đã có tài khoản? <a routerLink="/login">Đăng nhập</a></p>
     }
   </div>
 </div>

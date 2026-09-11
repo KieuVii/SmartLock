@@ -1,0 +1,32 @@
+.dialog-intro {
+  margin: 0 0 16px;
+  font-size: 0.85rem;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.dialog-error {
+  background-color: var(--mat-sys-error-container);
+  color: var(--mat-sys-on-error-container);
+}
+
+.dialog-form {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 360px;
+}
+
+.dialog-form mat-form-field {
+  width: 100%;
+}
+
+mat-dialog-actions button mat-spinner {
+  display: inline-block;
+  margin-right: 8px;
+}
+
+@media (max-width: 480px) {
+  .dialog-form {
+    min-width: 0;
+  }
+}

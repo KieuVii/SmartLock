@@ -2,17 +2,29 @@
   <mat-card class="panel-card">
     <div class="panel-header">
       <div>
-        <h2 class="panel-title">User Management</h2>
-        <p class="panel-subtitle">Registered SmartLock users, roles and access status</p>
+        <h2 class="panel-title">Quản lý người dùng</h2>
+        <p class="panel-subtitle">Người dùng SmartLock đã đăng ký, vai trò và trạng thái truy cập</p>
       </div>
       <div class="panel-actions">
+        @if (isAdmin()) {
+          <button mat-flat-button color="primary" (click)="openCreateDialog()">
+            <mat-icon>person_add</mat-icon>
+            Thêm người dùng
+          </button>
+        }
         <button mat-stroked-button (click)="loadProfiles()" [disabled]="loading()">
           <mat-icon>refresh</mat-icon>
-          Refresh
+          Làm mới
         </button>
       </div>
     </div>
     <mat-card-content>
+      @if (!isAdmin()) {
+        <div class="notice camera-notice">
+          <mat-icon>lock</mat-icon>
+          <span>Chỉ admin có quyền tạo, chỉnh sửa hoặc xóa người dùng.</span>
+        </div>
+      }
       @if (notice()) {
         <div class="notice">
           <mat-icon>info</mat-icon>
@@ -26,22 +38,22 @@
       } @else if (error()) {
         <div class="state-block">
           <mat-icon class="state-icon">error_outline</mat-icon>
-          <p class="state-title">Unable to load users</p>
+          <p class="state-title">Không thể tải người dùng</p>
           <p class="state-message">{{ error() }}</p>
         </div>
       } @else if (profiles().length === 0) {
         <div class="state-block">
           <mat-icon class="state-icon">group</mat-icon>
-          <p class="state-title">No users found</p>
+          <p class="state-title">Không tìm thấy người dùng</p>
           <p class="state-message">
-            Users appear here after they register and their profile is created.
+            Người dùng sẽ xuất hiện tại đây sau khi đăng ký và hồ sơ được tạo.
           </p>
         </div>
       } @else {
         <div class="table-wrap">
           <table mat-table [dataSource]="profiles()" class="logs-table">
             <ng-container matColumnDef="user">
-              <th mat-header-cell *matHeaderCellDef>User</th>
+              <th mat-header-cell *matHeaderCellDef>Người dùng</th>
               <td mat-cell *matCellDef="let profile">
                 <div class="user-cell">
                   <span class="user-avatar">{{ avatarText(profile) }}</span>
@@ -53,7 +65,7 @@
               </td>
             </ng-container>
             <ng-container matColumnDef="role">
-              <th mat-header-cell *matHeaderCellDef>Role</th>
+              <th mat-header-cell *matHeaderCellDef>Vai trò</th>
               <td mat-cell *matCellDef="let profile">
                 <span class="chip" [class]="profile.role === 'admin' ? 'role-admin' : 'role-user'">
                   {{ roleLabel(profile.role) }}
@@ -61,7 +73,7 @@
               </td>
             </ng-container>
             <ng-container matColumnDef="status">
-              <th mat-header-cell *matHeaderCellDef>Status</th>
+              <th mat-header-cell *matHeaderCellDef>Trạng thái</th>
               <td mat-cell *matCellDef="let profile">
                 <span class="chip" [class]="statusChipClass(profile.status)">
                   {{ statusLabel(profile.status) }}
@@ -69,33 +81,43 @@
               </td>
             </ng-container>
             <ng-container matColumnDef="created">
-              <th mat-header-cell *matHeaderCellDef>Created</th>
+              <th mat-header-cell *matHeaderCellDef>Thời gian tạo</th>
               <td mat-cell *matCellDef="let profile">{{ formatDate(profile.created_at) }}</td>
             </ng-container>
             <ng-container matColumnDef="actions">
-              <th mat-header-cell *matHeaderCellDef class="actions-col">Actions</th>
+              <th mat-header-cell *matHeaderCellDef class="actions-col">Thao tác</th>
               <td mat-cell *matCellDef="let profile" class="actions-col">
                 <button
                   mat-icon-button
+                  (click)="openEditDialog(profile)"
+                  title="Chỉnh sửa người dùng"
+                  aria-label="Chỉnh sửa người dùng"
+                >
+                  <mat-icon>edit</mat-icon>
+                </button>
+                <button
+                  mat-icon-button
                   (click)="onToggleStatus(profile)"
-                  [title]="profile.status === 'active' ? 'Block user' : 'Activate user'"
-                  [attr.aria-label]="profile.status === 'active' ? 'Block user' : 'Activate user'"
+                  [title]="profile.status === 'active' ? 'Khóa người dùng' : 'Kích hoạt người dùng'"
+                  [attr.aria-label]="
+                    profile.status === 'active' ? 'Khóa người dùng' : 'Kích hoạt người dùng'
+                  "
                 >
                   <mat-icon>{{ profile.status === 'active' ? 'block' : 'check_circle' }}</mat-icon>
                 </button>
                 <button
                   mat-icon-button
                   (click)="onDelete(profile)"
-                  title="Delete user"
-                  aria-label="Delete user"
+                  title="Xóa người dùng"
+                  aria-label="Xóa người dùng"
                 >
                   <mat-icon class="danger-icon">delete</mat-icon>
                 </button>
               </td>
             </ng-container>
 
-            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-            <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+            <tr mat-header-row *matHeaderRowDef="displayedColumns()"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns()"></tr>
           </table>
         </div>
       }

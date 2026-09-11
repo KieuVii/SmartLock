@@ -1,0 +1,108 @@
+<h2 mat-dialog-title>{{ isEdit ? 'Chỉnh sửa người dùng' : 'Thêm người dùng' }}</h2>
+
+<mat-dialog-content>
+  @if (error()) {
+    <div class="notice dialog-error">
+      <mat-icon>error_outline</mat-icon>
+      <span>{{ error() }}</span>
+    </div>
+  }
+
+  <form class="dialog-form" [formGroup]="form" (ngSubmit)="onSubmit()">
+    <mat-form-field appearance="outline">
+      <mat-label>Họ và tên</mat-label>
+      <input matInput formControlName="full_name" placeholder="VD: Nguyễn Văn A" required />
+      @if (form.controls.full_name.hasError('required')) {
+        <mat-error>Vui lòng nhập họ và tên.</mat-error>
+      }
+      @if (form.controls.full_name.hasError('maxlength')) {
+        <mat-error>Họ và tên tối đa 120 ký tự.</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Email</mat-label>
+      <input matInput formControlName="email" placeholder="user@example.com" type="email" />
+      @if (form.controls.email.hasError('email')) {
+        <mat-error>Email không hợp lệ.</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Số điện thoại</mat-label>
+      <input matInput formControlName="phone" placeholder="VD: 0901234567" />
+    </mat-form-field>
+
+    @if (!isEdit) {
+      <mat-form-field appearance="outline">
+        <mat-label>Mật khẩu</mat-label>
+        <input
+          matInput
+          formControlName="password"
+          type="password"
+          autocomplete="new-password"
+          required
+        />
+        @if (form.controls.password.hasError('required')) {
+          <mat-error>Vui lòng nhập mật khẩu.</mat-error>
+        }
+        @if (form.controls.password.hasError('minlength')) {
+          <mat-error>Mật khẩu tối thiểu 6 ký tự.</mat-error>
+        }
+        <mat-hint>Tài khoản đăng nhập sẽ được tạo bằng email và mật khẩu này.</mat-hint>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Xác nhận mật khẩu</mat-label>
+        <input
+          matInput
+          formControlName="confirmPassword"
+          type="password"
+          autocomplete="new-password"
+          required
+        />
+        @if (form.controls.confirmPassword.hasError('required')) {
+          <mat-error>Vui lòng xác nhận mật khẩu.</mat-error>
+        }
+        @if (form.controls.confirmPassword.touched && form.hasError('passwordsMismatch')) {
+          <mat-error>Mật khẩu không khớp.</mat-error>
+        }
+      </mat-form-field>
+    }
+
+    <mat-form-field appearance="outline">
+      <mat-label>Vai trò</mat-label>
+      <mat-select formControlName="role" required>
+        <mat-option value="user">Người dùng</mat-option>
+        <mat-option value="admin">Quản trị viên</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Trạng thái</mat-label>
+      <mat-select formControlName="status" required>
+        <mat-option value="active">Hoạt động</mat-option>
+        <mat-option value="blocked">Bị khóa</mat-option>
+        <mat-option value="pending">Chờ duyệt</mat-option>
+      </mat-select>
+    </mat-form-field>
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button type="button" (click)="onCancel()" [disabled]="saving()">Hủy</button>
+  <button
+    mat-flat-button
+    color="primary"
+    type="button"
+    (click)="onSubmit()"
+    [disabled]="form.invalid || saving()"
+  >
+    @if (saving()) {
+      <mat-spinner diameter="18" />
+    } @else {
+      <mat-icon>save</mat-icon>
+    }
+    {{ isEdit ? 'Lưu thay đổi' : 'Tạo người dùng' }}
+  </button>
+</mat-dialog-actions>

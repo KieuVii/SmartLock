@@ -2,11 +2,11 @@
   <mat-card class="hero-card">
     <div class="hero-content">
       <div class="hero-text">
-        <span class="hero-eyebrow">Access Control Dashboard</span>
+        <span class="hero-eyebrow">Bảng điều khiển kiểm soát truy cập</span>
         <h1 class="hero-title">{{ greeting() }}</h1>
         <p class="hero-subtitle">
-          Live activity from the SmartLock system — sourced from the <code>access_logs</code> table
-          in Supabase.
+          Hoạt động trực tiếp từ hệ thống SmartLock — lấy từ bảng <code>access_logs</code> trong
+          Supabase.
         </p>
       </div>
       <div class="hero-icon">
@@ -20,28 +20,28 @@
       <span class="stat-icon"><mat-icon>bolt</mat-icon></span>
       <div class="stat-body">
         <span class="stat-value">{{ totalCount() }}</span>
-        <span class="stat-label">Total Events</span>
+        <span class="stat-label">Tổng sự kiện</span>
       </div>
     </mat-card>
     <mat-card class="stat-card stat-success">
       <span class="stat-icon"><mat-icon>check_circle</mat-icon></span>
       <div class="stat-body">
         <span class="stat-value">{{ grantedCount() }}</span>
-        <span class="stat-label">Granted</span>
+        <span class="stat-label">Được phép</span>
       </div>
     </mat-card>
     <mat-card class="stat-card stat-danger">
       <span class="stat-icon"><mat-icon>block</mat-icon></span>
       <div class="stat-body">
         <span class="stat-value">{{ deniedCount() }}</span>
-        <span class="stat-label">Denied</span>
+        <span class="stat-label">Bị từ chối</span>
       </div>
     </mat-card>
     <mat-card class="stat-card stat-neutral">
       <span class="stat-icon"><mat-icon>trending_up</mat-icon></span>
       <div class="stat-body">
         <span class="stat-value">{{ grantRate() }}%</span>
-        <span class="stat-label">Grant Rate</span>
+        <span class="stat-label">Tỷ lệ cho phép</span>
       </div>
     </mat-card>
   </div>
@@ -49,13 +49,13 @@
   <mat-card class="panel-card">
     <div class="panel-header">
       <div>
-        <h2 class="panel-title">Recent Activity</h2>
-        <p class="panel-subtitle">The latest unlock attempts recorded by the system</p>
+        <h2 class="panel-title">Hoạt động gần đây</h2>
+        <p class="panel-subtitle">Các lần mở khóa mới nhất do hệ thống ghi nhận</p>
       </div>
       <div class="panel-actions">
         <button mat-stroked-button (click)="loadAccessLogs()" [disabled]="loading()">
           <mat-icon>refresh</mat-icon>
-          Refresh
+          Làm mới
         </button>
       </div>
     </div>
@@ -67,15 +67,15 @@
       } @else if (error()) {
         <div class="state-block">
           <mat-icon class="state-icon">error_outline</mat-icon>
-          <p class="state-title">Unable to load activity</p>
+          <p class="state-title">Không thể tải hoạt động</p>
           <p class="state-message">{{ error() }}</p>
         </div>
       } @else if (logs().length === 0) {
         <div class="state-block">
           <mat-icon class="state-icon">history</mat-icon>
-          <p class="state-title">No access events yet</p>
+          <p class="state-title">Chưa có sự kiện truy cập</p>
           <p class="state-message">
-            Events will appear here as the SmartLock device records activity.
+            Sự kiện sẽ xuất hiện tại đây khi thiết bị SmartLock ghi nhận hoạt động.
           </p>
         </div>
       } @else {
@@ -84,7 +84,7 @@
             <div class="activity-row">
               <span class="activity-avatar">{{ avatarText(log) }}</span>
               <div class="activity-main">
-                <span class="activity-name">{{ log.face_name ?? 'Unknown face' }}</span>
+                <span class="activity-name">{{ log.face_name ?? 'Khuôn mặt không xác định' }}</span>
                 <span class="activity-meta">{{ formatDate(log.access_time) }}</span>
               </div>
               @if (similarityPct(log)) {

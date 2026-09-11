@@ -23,7 +23,6 @@
         >
           <mat-icon>login</mat-icon>
           <span class="btn-label">Checkin</span>
-          <span class="btn-hint">Điểm danh vào</span>
           @if (busy() && busyAction() === 'start_checkin') {
             <mat-spinner diameter="22" />
           }
@@ -37,7 +36,6 @@
         >
           <mat-icon>logout</mat-icon>
           <span class="btn-label">Checkout</span>
-          <span class="btn-hint">Điểm danh ra</span>
           @if (busy() && busyAction() === 'start_checkout') {
             <mat-spinner diameter="22" />
           }
