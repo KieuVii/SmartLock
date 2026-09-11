@@ -1,0 +1,64 @@
+.device-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 16px;
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 12px;
+  background-color: var(--mat-sys-surface-container-low);
+}
+
+.device-info {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.device-code {
+  font-size: 1.3rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.device-name {
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.device-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  font-size: 0.85rem;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.chip-online {
+  background-color: color-mix(in srgb, #2e7d32 18%, transparent);
+  color: #1b5e20;
+}
+
+.chip-offline {
+  background-color: var(--mat-sys-error-container);
+  color: var(--mat-sys-on-error-container);
+}
+
+.hint {
+  margin-top: 16px;
+  font-size: 0.8rem;
+  color: var(--mat-sys-on-surface-variant);
+  line-height: 1.6;
+
+  code {
+    background-color: var(--mat-sys-surface-container-high);
+    padding: 1px 6px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+  }
+}
+
+.notice {
+  margin-top: 16px;
+}

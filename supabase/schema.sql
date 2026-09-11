@@ -301,7 +301,8 @@ create table if not exists public.device_commands (
         'start_register_face',
         'sync_face_db',
         'start_checkin',
-        'start_checkout'
+        'start_checkout',
+        'restart_service'
       )
     ),
 

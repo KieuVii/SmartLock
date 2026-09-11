@@ -6,6 +6,9 @@ export interface Device {
   device_code: string;
   device_name?: string | null;
   status?: string | null;
+  door_status?: string | null;
+  last_seen?: string | null;
+  ip_address?: string | null;
 }
 
 export type DeviceCommandStatus = 'pending' | 'running' | 'done' | 'failed' | 'cancelled';
@@ -58,6 +61,10 @@ export class DeviceService {
     requestedBy?: string | null,
   ): Promise<DeviceCommand> {
     return this.sendCommand(deviceId, command, {}, requestedBy);
+  }
+
+  async sendRestartServiceCommand(deviceId: string, requestedBy?: string | null): Promise<DeviceCommand> {
+    return this.sendCommand(deviceId, 'restart_service', {}, requestedBy);
   }
 
   private async sendCommand(

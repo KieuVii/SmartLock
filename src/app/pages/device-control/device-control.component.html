@@ -1,0 +1,58 @@
+<section class="page">
+  <mat-card class="panel-card">
+    <div class="panel-header">
+      <div>
+        <h2 class="panel-title">Thiết bị</h2>
+        <p class="panel-subtitle">Quản lý thiết bị SmartLock — khởi động lại service từ xa, không cần SSH</p>
+      </div>
+      <button mat-stroked-button (click)="refresh()" [disabled]="loading()">
+        <mat-icon>refresh</mat-icon>
+        Làm mới
+      </button>
+    </div>
+    <mat-card-content>
+      @if (!isAdmin()) {
+        <div class="state-block">
+          <mat-icon class="state-icon">lock</mat-icon>
+          <p class="state-title">Bạn không có quyền truy cập</p>
+          <p class="state-message">Trang này chỉ dành cho quản trị viên.</p>
+        </div>
+      } @else {
+        <div class="device-card">
+          <div class="device-info">
+            <div class="device-code">{{ DOOR_DEVICE_CODE }}</div>
+            <div class="device-name">{{ device()?.device_name ?? 'SmartLock Door' }}</div>
+            <div class="device-meta">
+              <span class="chip" [class.chip-online]="deviceOnline()" [class.chip-offline]="!deviceOnline()">
+                {{ deviceOnline() ? 'ONLINE' : 'OFFLINE' }}
+              </span>
+              <span>Cửa: {{ doorStatusLabel() }}</span>
+              <span>Last seen: {{ lastSeenLabel() }}</span>
+            </div>
+          </div>
+          <button mat-raised-button color="warn" (click)="restartService()" [disabled]="restarting()">
+            @if (restarting()) {
+              <mat-spinner diameter="18" />
+            } @else {
+              <mat-icon>restart_alt</mat-icon>
+            }
+            Khởi động lại service
+          </button>
+        </div>
+
+        @if (result()) {
+          <div class="notice" [class.success]="result()!.ok" [class.error]="!result()!.ok">
+            <mat-icon>{{ result()!.ok ? 'check_circle' : 'error' }}</mat-icon>
+            <span>{{ result()!.text }}</span>
+          </div>
+        }
+
+        <p class="hint">
+          Lệnh khởi động lại đi qua <code>device_commands</code>: Pi nhận lệnh, thoát sạch và được systemd bật lại tự
+          động (<code>Restart=always</code>) — không cần quyền sudo. Nếu Pi kẹt hoàn toàn (mất mạng, không nhận được
+          lệnh), watchdog systemd (<code>WatchdogSec=30</code>) sẽ tự khởi động lại Pi trong ~30s.
+        </p>
+      }
+    </mat-card-content>
+  </mat-card>
+</section>

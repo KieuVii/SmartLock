@@ -41,6 +41,13 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'device-control',
+        loadComponent: () =>
+          import('./pages/device-control/device-control.component').then(
+            (m) => m.DeviceControlComponent,
+          ),
+      },
+      {
         path: 'access-history',
         loadComponent: () =>
           import('./pages/access-history/access-history.component').then(

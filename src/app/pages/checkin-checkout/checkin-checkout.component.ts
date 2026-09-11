@@ -38,6 +38,7 @@ export class CheckinCheckoutComponent {
   readonly busyAction = signal<DeviceAction | null>(null);
   readonly result = signal<ActionResult | null>(null);
   readonly deviceOnline = signal<boolean | null>(null);
+  readonly reconnecting = signal(false);
 
   constructor() {
     void this.checkDevice();
@@ -101,6 +102,7 @@ export class CheckinCheckoutComponent {
       elapsed += POLL_INTERVAL;
       try {
         const cmd = await this.deviceService.getCommand(cmdId);
+        this.reconnecting.set(false);
         const terminal: DeviceCommandStatus[] = ['done', 'failed', 'cancelled'];
         if (!cmd || terminal.includes(cmd.status)) {
           clearInterval(timer);
@@ -123,11 +125,13 @@ export class CheckinCheckoutComponent {
             text: 'Thiết bị không phản hồi (kiểm tra Pi có online và main.py chạy không).',
           });
         }
-      } catch (err) {
-        clearInterval(timer);
-        this.busy.set(false);
-        this.busyAction.set(null);
-        this.result.set({ ok: false, text: (err as Error).message });
+      } catch {
+        // Mat ket noi tam thoi: KHONG dung poll, tiep tuc thu lai den khi co mang lai
+        this.reconnecting.set(true);
+        this.result.set({
+          ok: false,
+          text: 'Mất kết nối mạng, đang thử lại... Lệnh sẽ tiếp tục được theo dõi khi có mạng.',
+        });
       }
     }, POLL_INTERVAL);
     this.destroyRef.onDestroy(() => clearInterval(timer));

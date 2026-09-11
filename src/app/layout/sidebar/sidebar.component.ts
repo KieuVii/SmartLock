@@ -7,6 +7,7 @@ interface NavItem {
   label: string;
   path: string;
   icon: string;
+  adminOnly?: boolean;
 }
 
 @Component({
@@ -25,12 +26,13 @@ export class Sidebar {
     { label: 'Checkin / Checkout', path: '/checkin-checkout', icon: 'schedule' },
     { label: 'Đăng ký khuôn mặt', path: '/face-register', icon: 'face' },
     { label: 'Lịch sử truy cập', path: '/access-history', icon: 'history' },
-    { label: 'Quản lý người dùng', path: '/user-management', icon: 'group' },
+    { label: 'Quản lý người dùng', path: '/user-management', icon: 'group', adminOnly: true },
+    { label: 'Thiết bị', path: '/device-control', icon: 'settings', adminOnly: true },
     { label: 'Cảnh báo', path: '/alert-page', icon: 'notifications' },
   ];
 
   readonly navItems = computed(() =>
-    this.isAdmin() ? this.allNavItems : this.allNavItems.filter((item) => item.path !== '/user-management'),
+    this.isAdmin() ? this.allNavItems : this.allNavItems.filter((item) => !item.adminOnly),
   );
 
   constructor() {

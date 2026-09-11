@@ -42,6 +42,13 @@
         </button>
       </div>
 
+      @if (reconnecting()) {
+        <div class="notice warning">
+          <mat-icon>wifi_off</mat-icon>
+          <span>Mất kết nối mạng, đang thử lại... Lệnh sẽ tiếp tục được theo dõi khi có mạng.</span>
+        </div>
+      }
+
       @if (result(); as res) {
         <div class="notice" [class.success]="res.ok" [class.error]="!res.ok">
           <mat-icon>{{ res.ok ? 'check_circle' : 'error_outline' }}</mat-icon>
