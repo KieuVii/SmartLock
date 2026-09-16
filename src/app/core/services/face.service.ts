@@ -18,6 +18,9 @@ export interface FaceRegistration {
   note?: string | null;
   created_at?: string | null;
   updated_at?: string | null;
+  user_name?: string | null;
+  user_email?: string | null;
+  room_name?: string | null;
 }
 
 export type FaceRegistrationInput = Partial<FaceRegistration> &
@@ -32,12 +35,22 @@ export class FaceService {
   async listFaces(): Promise<FaceRegistration[]> {
     const { data, error } = await this.supabase
       .from('face_profiles')
-      .select('*')
+      .select('*, profiles(full_name, email), rooms(room_name)')
       .order('created_at', { ascending: false });
     if (error) {
       throw error;
     }
-    return (data ?? []) as FaceRegistration[];
+    return ((data ?? []) as Array<Record<string, unknown>>).map((row) => {
+      const profile = row['profiles'] as unknown as { full_name?: string; email?: string | null } | null;
+      const room = row['rooms'] as unknown as { room_name?: string } | null;
+      const result: Record<string, unknown> = { ...row };
+      delete result['profiles'];
+      delete result['rooms'];
+      result['user_name'] = profile?.full_name ?? null;
+      result['user_email'] = profile?.email ?? null;
+      result['room_name'] = room?.room_name ?? null;
+      return result as unknown as FaceRegistration;
+    });
   }
 
   async getFace(id: string): Promise<FaceRegistration | null> {
@@ -68,6 +81,19 @@ export class FaceService {
     const { data, error } = await this.supabase
       .from('face_profiles')
       .update({ status })
+      .eq('id', id)
+      .select()
+      .single();
+    if (error) {
+      throw error;
+    }
+    return data as FaceRegistration;
+  }
+
+  async updateFaceDevice(id: string, deviceId: string): Promise<FaceRegistration> {
+    const { data, error } = await this.supabase
+      .from('face_profiles')
+      .update({ registered_by_device_id: deviceId })
       .eq('id', id)
       .select()
       .single();

@@ -48,6 +48,13 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'site-hierarchy',
+        loadComponent: () =>
+          import('./pages/site-hierarchy/site-hierarchy.component').then(
+            (m) => m.SiteHierarchyComponent,
+          ),
+      },
+      {
         path: 'access-history',
         loadComponent: () =>
           import('./pages/access-history/access-history.component').then(

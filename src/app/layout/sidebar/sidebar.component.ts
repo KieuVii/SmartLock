@@ -28,6 +28,7 @@ export class Sidebar {
     { label: 'Lịch sử truy cập', path: '/access-history', icon: 'history' },
     { label: 'Quản lý người dùng', path: '/user-management', icon: 'group', adminOnly: true },
     { label: 'Thiết bị', path: '/device-control', icon: 'settings', adminOnly: true },
+    { label: 'Cơ cấu tòa nhà', path: '/site-hierarchy', icon: 'apartment', adminOnly: true },
     { label: 'Cảnh báo', path: '/alert-page', icon: 'notifications' },
   ];
 

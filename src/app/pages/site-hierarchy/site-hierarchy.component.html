@@ -1,0 +1,268 @@
+<mat-drawer-container class="drawer-host" autosize>
+  <mat-drawer
+    mode="over"
+    position="end"
+    [opened]="drawerOpen()"
+    (closed)="drawerOpen.set(false)"
+    class="add-member-drawer"
+  >
+    <div class="drawer-inner">
+      <div class="drawer-header">
+        <h3 class="drawer-title">Thêm thành viên</h3>
+        <p class="drawer-subtitle">Phòng: {{ roomName() }}</p>
+      </div>
+
+      <mat-form-field appearance="outline" class="drawer-search">
+        <mat-label>Tìm thành viên</mat-label>
+        <mat-icon matPrefix>search</mat-icon>
+        <input
+          matInput
+          [value]="drawerFilter()"
+          (input)="onDrawerFilter($event)"
+          placeholder="Tên hoặc email"
+        />
+      </mat-form-field>
+
+      @if (drawerLoading()) {
+        <div class="center"><mat-spinner diameter="32" /></div>
+      } @else if (filteredNonMembers().length === 0) {
+        <div class="state-block">
+          <mat-icon class="state-icon">group_off</mat-icon>
+          <p class="state-title">Không còn ai để thêm</p>
+          <p class="state-message">
+            Toàn bộ người dùng đang hoạt động đều đã là thành viên của phòng này.
+          </p>
+        </div>
+      } @else {
+        <mat-checkbox
+          class="drawer-checkall"
+          [checked]="allSelected()"
+          [indeterminate]="someSelected()"
+          (change)="toggleAll($event.checked)"
+        >
+          Chọn tất cả ({{ filteredNonMembers().length }})
+        </mat-checkbox>
+
+        <div class="drawer-list">
+          @for (user of filteredNonMembers(); track user.id) {
+            <div class="drawer-user">
+              <mat-checkbox
+                [checked]="isSelected(user.id)"
+                (change)="toggleUser(user.id, $event.checked)"
+              />
+              <span class="user-avatar">{{ avatarText(user.full_name) }}</span>
+              <div class="user-meta">
+                <span class="user-name">{{ user.full_name }}</span>
+                <span class="user-email">{{ user.email ?? '—' }}</span>
+              </div>
+            </div>
+          }
+        </div>
+      }
+
+      <div class="drawer-footer">
+        <button mat-button (click)="drawerOpen.set(false)" [disabled]="adding()">Hủy</button>
+        <button
+          mat-flat-button
+          color="primary"
+          (click)="addSelectedMembers()"
+          [disabled]="selectedUserIds().length === 0 || adding()"
+        >
+          @if (adding()) {
+            <mat-spinner diameter="18" />
+          } @else {
+            <mat-icon>group_add</mat-icon>
+          }
+          Thêm {{ selectedUserIds().length }} thành viên
+        </button>
+      </div>
+    </div>
+  </mat-drawer>
+
+  <mat-drawer-content>
+    <section class="page">
+      <mat-card class="panel-card">
+        <div class="panel-header">
+          <div>
+            <h2 class="panel-title">Quản lý cơ cấu tòa nhà</h2>
+            <p class="panel-subtitle">Cây phân cấp Tòa nhà → Tầng → Phòng → Cửa → Thiết bị</p>
+          </div>
+          <div class="panel-actions">
+            <button mat-stroked-button (click)="loadTree()" [disabled]="loading()">
+              <mat-icon>refresh</mat-icon>
+              Làm mới
+            </button>
+          </div>
+        </div>
+        <mat-card-content>
+          @if (notice()) {
+            <div class="notice">
+              <mat-icon>info</mat-icon>
+              <span>{{ notice() }}</span>
+            </div>
+          }
+          @if (!isAdmin()) {
+            <div class="notice camera-notice">
+              <mat-icon>lock</mat-icon>
+              <span>Chỉ admin có quyền quản lý cơ cấu tòa nhà và thành viên phòng.</span>
+            </div>
+          } @else if (loading()) {
+            <div class="center"><mat-spinner diameter="32" /></div>
+          } @else if (error()) {
+            <div class="state-block">
+              <mat-icon class="state-icon">error_outline</mat-icon>
+              <p class="state-title">Không thể tải cơ cấu tòa nhà</p>
+              <p class="state-message">{{ error() }}</p>
+            </div>
+          } @else {
+            <div class="site-grid">
+              <div class="site-tree-panel">
+                <div class="site-tree-header">
+                  <span class="site-tree-title">Cơ cấu</span>
+                  <span class="site-tree-hint">Tích checkbox node rồi bấm Add / Remove</span>
+                </div>
+                <div class="site-tree-body">
+                  @if (tree().length === 0) {
+                    <div class="state-block">
+                      <mat-icon class="state-icon">apartment</mat-icon>
+                      <p class="state-title">Chưa có tòa nhà nào</p>
+                      <p class="state-message">Tạo dữ liệu trong Supabase (bảng buildings) để bắt đầu.</p>
+                    </div>
+                  } @else {
+                    @for (item of visibleNodes(); track item.node.id) {
+                      <div
+                        class="tree-row"
+                        [class.tree-row-selected]="selected()?.id === item.node.id"
+                        [style.padding-left.px]="item.depth * 20"
+                      >
+                        @if (canExpand(item.node)) {
+                          @if (isLoading(item.node)) {
+                            <span class="row-toggle"><mat-spinner diameter="16" /></span>
+                          } @else {
+                            <button
+                              class="row-toggle"
+                              type="button"
+                              (click)="onToggle(item.node)"
+                              [attr.aria-label]="'Bật/tắt ' + item.node.name"
+                            >
+                              <mat-icon>{{ isExpanded(item.node) ? 'expand_more' : 'chevron_right' }}</mat-icon>
+                            </button>
+                          }
+                        } @else {
+                          <span class="row-toggle"></span>
+                        }
+                        <mat-checkbox
+                          class="row-check"
+                          [checked]="selected()?.id === item.node.id"
+                          (click)="$event.stopPropagation()"
+                          (change)="onToggleSelect(item.node, $event.checked)"
+                        ></mat-checkbox>
+                        <mat-icon class="row-icon">{{ iconFor(item.node) }}</mat-icon>
+                        <span class="row-name" (click)="onSelect(item.node)" [title]="item.node.name">
+                          {{ item.node.name }}
+                        </span>
+                        @if (item.node.type === 'device' && item.node.device) {
+                          <span class="row-code">{{ item.node.device.device_code }}</span>
+                        }
+                      </div>
+                    }
+                  }
+                </div>
+                <div class="site-tree-footer">
+                  <button mat-flat-button color="primary" (click)="openAddDialog()" [disabled]="!canAdd()">
+                    <mat-icon>add</mat-icon>
+                    Add Site
+                  </button>
+                  <button mat-stroked-button class="danger-btn" (click)="onRemove()" [disabled]="!canRemove()">
+                    <mat-icon>delete</mat-icon>
+                    Remove Site
+                  </button>
+                </div>
+              </div>
+
+              <div class="members-panel">
+                @if (selected()?.type !== 'room') {
+                  <div class="state-block">
+                    <mat-icon class="state-icon">groups</mat-icon>
+                    <p class="state-title">Chưa chọn phòng</p>
+                    <p class="state-message">
+                      Click vào một phòng (cấp Phòng) trong cây để xem và quản lý thành viên.
+                    </p>
+                  </div>
+                } @else {
+                  <div class="members-header">
+                    <div>
+                      <h3 class="members-title">Thành viên — {{ roomName() }}</h3>
+                      <p class="members-subtitle">{{ members().length }} thành viên</p>
+                    </div>
+                    <button mat-flat-button color="primary" (click)="openAddMemberDrawer()">
+                      <mat-icon>person_add</mat-icon>
+                      Add Member
+                    </button>
+                  </div>
+
+                  @if (membersLoading()) {
+                    <div class="center"><mat-spinner diameter="32" /></div>
+                  } @else if (membersError()) {
+                    <div class="state-block">
+                      <mat-icon class="state-icon">error_outline</mat-icon>
+                      <p class="state-title">Không thể tải thành viên</p>
+                      <p class="state-message">{{ membersError() }}</p>
+                    </div>
+                  } @else if (members().length === 0) {
+                    <div class="state-block">
+                      <mat-icon class="state-icon">person_add_alt_1</mat-icon>
+                      <p class="state-title">Phòng chưa có thành viên</p>
+                      <p class="state-message">Bấm "Add Member" để thêm người dùng vào phòng.</p>
+                    </div>
+                  } @else {
+                    <div class="table-wrap">
+                      <table mat-table [dataSource]="members()" class="logs-table">
+                        <ng-container matColumnDef="user">
+                          <th mat-header-cell *matHeaderCellDef>Thành viên</th>
+                          <td mat-cell *matCellDef="let member">
+                            <div class="user-cell">
+                              <span class="user-avatar">{{ avatarText(member.full_name) }}</span>
+                              <div class="user-meta">
+                                <span class="user-name">{{ member.full_name }}</span>
+                                <span class="user-email">{{ member.email ?? '—' }}</span>
+                              </div>
+                            </div>
+                          </td>
+                        </ng-container>
+                        <ng-container matColumnDef="contact">
+                          <th mat-header-cell *matHeaderCellDef>Liên hệ</th>
+                          <td mat-cell *matCellDef="let member">{{ member.phone ?? '—' }}</td>
+                        </ng-container>
+                        <ng-container matColumnDef="joined">
+                          <th mat-header-cell *matHeaderCellDef>Ngày tham gia</th>
+                          <td mat-cell *matCellDef="let member">{{ formatDate(member.joined_at) }}</td>
+                        </ng-container>
+                        <ng-container matColumnDef="actions">
+                          <th mat-header-cell *matHeaderCellDef class="actions-col">Thao tác</th>
+                          <td mat-cell *matCellDef="let member" class="actions-col">
+                            <button
+                              mat-icon-button
+                              (click)="onRemoveMember(member)"
+                              title="Loại khỏi phòng"
+                              aria-label="Loại khỏi phòng"
+                            >
+                              <mat-icon class="danger-icon">person_remove</mat-icon>
+                            </button>
+                          </td>
+                        </ng-container>
+
+                        <tr mat-header-row *matHeaderRowDef="memberColumns"></tr>
+                        <tr mat-row *matRowDef="let row; columns: memberColumns"></tr>
+                      </table>
+                    </div>
+                  }
+                }
+              </div>
+            </div>
+          }
+        </mat-card-content>
+      </mat-card>
+    </section>
+  </mat-drawer-content>
+</mat-drawer-container>

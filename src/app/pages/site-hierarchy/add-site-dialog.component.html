@@ -1,0 +1,66 @@
+<h2 mat-dialog-title>{{ title() }}</h2>
+<p class="dialog-subtitle">
+  Thêm <strong>{{ title().slice(5) }}</strong> bên dưới
+  <strong>{{ data.parentName }}</strong>
+</p>
+
+<mat-dialog-content>
+  @if (error()) {
+    <div class="notice dialog-error">
+      <mat-icon>error_outline</mat-icon>
+      <span>{{ error() }}</span>
+    </div>
+  }
+
+  <form class="dialog-form" [formGroup]="form" (ngSubmit)="onSubmit()">
+    <mat-form-field appearance="outline">
+      <mat-label>Tên {{ childLabel(data.parentType) }}</mat-label>
+      <input
+        matInput
+        formControlName="name"
+        [placeholder]="childType === 'floor' ? 'VD: Tầng 4' : childType === 'room' ? 'VD: Phòng 104' : childType === 'door' ? 'VD: Cửa phụ' : 'VD: Cửa chính'"
+        required
+      />
+      @if (form.controls.name.hasError('required')) {
+        <mat-error>Vui lòng nhập tên.</mat-error>
+      }
+      @if (form.controls.name.hasError('maxlength')) {
+        <mat-error>Tên tối đa 120 ký tự.</mat-error>
+      }
+    </mat-form-field>
+
+    @if (isDevice) {
+      <mat-form-field appearance="outline">
+        <mat-label>Mã thiết bị (device_code)</mat-label>
+        <input matInput formControlName="device_code" placeholder="VD: DOOR_401" required />
+        <mat-hint>Mã phải là duy nhất, ví dụ DOOR_101.</mat-hint>
+        @if (form.controls.device_code.hasError('required')) {
+          <mat-error>Vui lòng nhập mã thiết bị.</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Tên thiết bị</mat-label>
+        <input matInput formControlName="device_name" placeholder="VD: Raspberry Pi Door Device" />
+      </mat-form-field>
+    }
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button type="button" (click)="onCancel()" [disabled]="saving()">Hủy</button>
+  <button
+    mat-flat-button
+    color="primary"
+    type="button"
+    (click)="onSubmit()"
+    [disabled]="form.invalid || saving()"
+  >
+    @if (saving()) {
+      <mat-spinner diameter="18" />
+    } @else {
+      <mat-icon>add</mat-icon>
+    }
+    {{ title() }}
+  </button>
+</mat-dialog-actions>

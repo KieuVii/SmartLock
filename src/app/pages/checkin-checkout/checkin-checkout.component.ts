@@ -5,12 +5,13 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { AuthService } from '../../core/services/auth.service';
 import {
-  DOOR_DEVICE_CODE,
   DeviceService,
+  type Device,
   type DeviceAction,
   type DeviceCommandStatus,
 } from '../../core/services/device.service';
-import { UserService } from '../../core/services/user.service';
+import { RoomService } from '../../core/services/room.service';
+import { SiteService } from '../../core/services/site.service';
 
 const POLL_INTERVAL = 3000;
 const POLL_TIMEOUT = 90000;
@@ -21,6 +22,13 @@ interface ActionResult {
   detail?: string;
 }
 
+interface DoorEntry {
+  key: string;
+  roomId: string;
+  roomName: string;
+  device: Device;
+}
+
 @Component({
   selector: 'app-checkin-checkout',
   templateUrl: './checkin-checkout.component.html',
@@ -29,74 +37,108 @@ interface ActionResult {
 })
 export class CheckinCheckoutComponent {
   private readonly deviceService = inject(DeviceService);
-  private readonly userService = inject(UserService);
+  private readonly roomService = inject(RoomService);
+  private readonly siteService = inject(SiteService);
   private readonly auth = inject(AuthService);
   private readonly destroyRef = inject(DestroyRef);
 
-  readonly DOOR_DEVICE_CODE = DOOR_DEVICE_CODE;
+  readonly doors = signal<DoorEntry[]>([]);
+  readonly loading = signal(true);
+  readonly error = signal<string | null>(null);
   readonly busy = signal(false);
-  readonly busyAction = signal<DeviceAction | null>(null);
+  readonly busyKey = signal<string | null>(null);
   readonly result = signal<ActionResult | null>(null);
-  readonly deviceOnline = signal<boolean | null>(null);
   readonly reconnecting = signal(false);
 
   constructor() {
-    void this.checkDevice();
+    void this.loadDoors();
   }
 
-  async checkDevice(): Promise<void> {
+  async loadDoors(): Promise<void> {
+    this.loading.set(true);
+    this.error.set(null);
     try {
-      const device = await this.deviceService.getDeviceByCode(DOOR_DEVICE_CODE);
-      this.deviceOnline.set(device?.status === 'online');
-    } catch {
-      this.deviceOnline.set(false);
+      const isAdmin = await this.auth.isCurrentUserAdmin();
+      const rooms = await this.roomService.listRooms();
+      const roomById = new Map(rooms.map((room) => [room.id, room]));
+
+      let roomIds: string[];
+      if (isAdmin) {
+        roomIds = rooms.map((room) => room.id);
+      } else {
+        const profile = await this.auth.getCurrentProfile();
+        roomIds = profile ? await this.siteService.listMemberRoomIds(profile.id) : [];
+      }
+
+      const devices = await this.deviceService.getDevicesForRoomIds(roomIds);
+      const entries: DoorEntry[] = [];
+      for (const device of devices) {
+        const room = device.room_id ? roomById.get(device.room_id) : undefined;
+        if (!room || room.status !== 'active') {
+          continue;
+        }
+        entries.push({
+          key: `${room.id}:${device.id}`,
+          roomId: room.id,
+          roomName: room.room_name,
+          device,
+        });
+      }
+      entries.sort((a, b) => a.roomName.localeCompare(b.roomName, 'vi'));
+      this.doors.set(entries);
+    } catch (err) {
+      this.error.set((err as Error).message);
+    } finally {
+      this.loading.set(false);
     }
   }
 
-  async run(action: DeviceAction): Promise<void> {
+  deviceStatusLabel(device: Device): string {
+    switch (device.status) {
+      case 'online':
+        return 'Trực tuyến';
+      case 'offline':
+        return 'Ngoại tuyến';
+      default:
+        return device.status ?? 'Không xác định';
+    }
+  }
+
+  async run(action: DeviceAction, entry: DoorEntry): Promise<void> {
     if (this.busy()) {
       return;
     }
     this.result.set(null);
     this.busy.set(true);
-    this.busyAction.set(action);
+    this.busyKey.set(entry.key);
 
     try {
-      const device = await this.deviceService.getDeviceByCode(DOOR_DEVICE_CODE);
-      if (!device) {
-        this.result.set({
-          ok: false,
-          text: `Không tìm thấy thiết bị "${DOOR_DEVICE_CODE}".`,
-        });
-        return;
-      }
-
       let requestedBy: string | null = null;
       try {
         const user = await this.auth.getCurrentUser();
         if (user) {
-          const profile = await this.userService.getProfileByAuthUserId(user.id);
+          const profile = await this.auth.getCurrentProfile();
           requestedBy = profile?.id ?? null;
         }
       } catch {
         requestedBy = null;
       }
 
-      const cmd = await this.deviceService.sendActionCommand(device.id, action, requestedBy);
+      const cmd = await this.deviceService.sendActionCommand(entry.device.id, action, requestedBy);
       const label = action === 'start_checkin' ? 'Checkin' : 'Checkout';
       this.result.set({
         ok: true,
-        text: `Đã gửi lệnh ${label}. Hãy nhìn vào camera của thiết bị.`,
+        text: `Đã gửi lệnh ${label} cho "${entry.roomName}". Hãy nhìn vào camera của thiết bị.`,
       });
-      this.pollCommandStatus(cmd.id, label);
+      this.pollCommandStatus(cmd.id, label, entry);
     } catch (err) {
       this.busy.set(false);
-      this.busyAction.set(null);
+      this.busyKey.set(null);
       this.result.set({ ok: false, text: (err as Error).message });
     }
   }
 
-  private pollCommandStatus(cmdId: string, label: string): void {
+  private pollCommandStatus(cmdId: string, label: string, entry: DoorEntry): void {
     let elapsed = 0;
     const timer = setInterval(async () => {
       elapsed += POLL_INTERVAL;
@@ -107,19 +149,27 @@ export class CheckinCheckoutComponent {
         if (!cmd || terminal.includes(cmd.status)) {
           clearInterval(timer);
           this.busy.set(false);
-          this.busyAction.set(null);
+          this.busyKey.set(null);
           if (!cmd) {
             this.result.set({ ok: false, text: 'Không lấy được trạng thái lệnh.' });
           } else if (cmd.status === 'done') {
-            this.result.set({ ok: true, text: `${label} thành công!`, detail: cmd.result_message ?? undefined });
+            this.result.set({
+              ok: true,
+              text: `${label} thành công!`,
+              detail: cmd.result_message ?? undefined,
+            });
           } else {
-            this.result.set({ ok: false, text: `${label} thất bại.`, detail: cmd.result_message ?? cmd.status });
+            this.result.set({
+              ok: false,
+              text: `${label} thất bại.`,
+              detail: cmd.result_message ?? cmd.status,
+            });
           }
-          void this.checkDevice();
+          void this.loadDoors();
         } else if (elapsed >= POLL_TIMEOUT) {
           clearInterval(timer);
           this.busy.set(false);
-          this.busyAction.set(null);
+          this.busyKey.set(null);
           this.result.set({
             ok: false,
             text: 'Thiết bị không phản hồi (kiểm tra Pi có online và main.py chạy không).',

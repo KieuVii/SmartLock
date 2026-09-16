@@ -9,6 +9,8 @@ export interface Device {
   door_status?: string | null;
   last_seen?: string | null;
   ip_address?: string | null;
+  room_id?: string | null;
+  door_id?: string | null;
 }
 
 export type DeviceCommandStatus = 'pending' | 'running' | 'done' | 'failed' | 'cancelled';
@@ -25,9 +27,14 @@ export interface DeviceCommand {
   result_message?: string | null;
 }
 
-export const DOOR_DEVICE_CODE = 'DOOR_01';
-
 export type DeviceAction = 'start_checkin' | 'start_checkout';
+
+export interface RoomDeviceEntry {
+  device: Device;
+  roomId: string;
+  roomName: string;
+  doorName?: string | null;
+}
 
 @Injectable({
   providedIn: 'root',
@@ -35,16 +42,64 @@ export type DeviceAction = 'start_checkin' | 'start_checkout';
 export class DeviceService {
   private readonly supabase = inject(SupabaseService).supabase;
 
-  async getDeviceByCode(deviceCode: string): Promise<Device | null> {
+  async getDevice(deviceId: string): Promise<Device | null> {
     const { data, error } = await this.supabase
       .from('devices')
-      .select('id, device_code, device_name, status')
-      .eq('device_code', deviceCode)
+      .select('*')
+      .eq('id', deviceId)
       .maybeSingle();
     if (error) {
       throw error;
     }
     return (data ?? null) as Device | null;
+  }
+
+  async getDevicesByRoom(roomId: string): Promise<Device[]> {
+    const { data, error } = await this.supabase
+      .from('devices')
+      .select('*')
+      .eq('room_id', roomId)
+      .order('device_code');
+    if (error) {
+      throw error;
+    }
+    return (data ?? []) as Device[];
+  }
+
+  async getDevicesForRoomIds(roomIds: string[]): Promise<Device[]> {
+    if (roomIds.length === 0) {
+      return [];
+    }
+    const { data, error } = await this.supabase
+      .from('devices')
+      .select('*')
+      .in('room_id', roomIds)
+      .order('device_code');
+    if (error) {
+      throw error;
+    }
+    return (data ?? []) as Device[];
+  }
+
+  async listDevicesWithRooms(): Promise<RoomDeviceEntry[]> {
+    const { data, error } = await this.supabase
+      .from('devices')
+      .select('*, doors(name), rooms(room_name, building_name, floor)')
+      .not('room_id', 'is', null)
+      .order('device_code');
+    if (error) {
+      throw error;
+    }
+    return (data ?? []).map((row) => {
+      const door = row.doors as unknown as { name?: string } | null;
+      const room = row.rooms as unknown as { room_name?: string } | null;
+      return {
+        device: row as Device,
+        roomId: row.room_id as string,
+        roomName: room?.room_name ?? '—',
+        doorName: door?.name ?? null,
+      };
+    });
   }
 
   async sendRegisterFaceCommand(

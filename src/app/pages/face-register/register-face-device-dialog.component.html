@@ -1,0 +1,70 @@
+<h2 mat-dialog-title>Chọn thiết bị đăng ký</h2>
+
+<mat-dialog-content>
+  <p class="dialog-intro">
+    Chọn cửa/thiết bị để mở màn hình scan khuôn mặt <strong>{{ data.faceName }}</strong>.
+    Người cần đăng ký phải đứng trước camera của thiết bị (Pi).
+  </p>
+
+  @if (error()) {
+    <div class="notice dialog-error">
+      <mat-icon>error_outline</mat-icon>
+      <span>{{ error() }}</span>
+    </div>
+  }
+
+  @if (loading()) {
+    <div class="center">
+      <mat-spinner diameter="32" />
+    </div>
+  } @else if (roomOptions().length === 0) {
+    <div class="state-block">
+      <mat-icon class="state-icon">memory</mat-icon>
+      <p class="state-title">Chưa có thiết bị nào</p>
+      <p class="state-message">Gán thiết bị cho phòng trong cơ cấu tòa nhà trước khi đăng ký.</p>
+    </div>
+  } @else {
+    <form class="dialog-form" [formGroup]="form">
+      <mat-form-field appearance="outline">
+        <mat-label>Phòng</mat-label>
+        <mat-select formControlName="room_id" (selectionChange)="onRoomChange()">
+          @for (room of roomOptions(); track room.id) {
+            <mat-option [value]="room.id">{{ room.name }}</mat-option>
+          }
+        </mat-select>
+        @if (form.controls.room_id.hasError('required')) {
+          <mat-error>Vui lòng chọn phòng.</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Thiết bị</mat-label>
+        <mat-select formControlName="device_id">
+          @for (entry of deviceOptions(); track entry.device.id) {
+            <mat-option [value]="entry.device.id">
+              {{ entry.doorName ?? 'Cửa' }} · {{ entry.device.device_code }}
+              ({{ entry.device.status === 'online' ? 'Online' : 'Offline' }})
+            </mat-option>
+          }
+        </mat-select>
+        @if (form.controls.device_id.hasError('required')) {
+          <mat-error>Vui lòng chọn thiết bị.</mat-error>
+        }
+      </mat-form-field>
+    </form>
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button type="button" (click)="onCancel()">Hủy</button>
+  <button
+    mat-flat-button
+    color="primary"
+    type="button"
+    (click)="onSubmit()"
+    [disabled]="form.invalid || loading() || roomOptions().length === 0"
+  >
+    <mat-icon>camera_alt</mat-icon>
+    Gửi lệnh
+  </button>
+</mat-dialog-actions>

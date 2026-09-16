@@ -82,11 +82,56 @@ before update on public.profiles
 for each row execute function public.set_updated_at();
 
 -- =========================================================
--- 3. ROOMS
+-- 3. BUILDINGS, FLOORS, ROOMS, DOORS (SITE HIERARCHY)
+-- Building (root) -> Floor -> Room -> Door -> Device
 -- =========================================================
+
+create table if not exists public.buildings (
+  id uuid primary key default gen_random_uuid(),
+
+  name text not null,
+  description text,
+
+  status text not null default 'active'
+    check (status in ('active', 'inactive')),
+
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+
+  constraint buildings_name_unique unique (name)
+);
+
+drop trigger if exists set_buildings_updated_at on public.buildings;
+create trigger set_buildings_updated_at
+before update on public.buildings
+for each row execute function public.set_updated_at();
+
+create table if not exists public.floors (
+  id uuid primary key default gen_random_uuid(),
+
+  building_id uuid not null references public.buildings(id) on delete cascade,
+
+  name text not null,
+  level int not null default 0,
+
+  status text not null default 'active'
+    check (status in ('active', 'inactive')),
+
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+
+  constraint floors_building_name_unique unique (building_id, name)
+);
+
+drop trigger if exists set_floors_updated_at on public.floors;
+create trigger set_floors_updated_at
+before update on public.floors
+for each row execute function public.set_updated_at();
 
 create table if not exists public.rooms (
   id uuid primary key default gen_random_uuid(),
+
+  floor_id uuid references public.floors(id) on delete cascade,
 
   room_name text not null,
   floor text,
@@ -107,6 +152,27 @@ create trigger set_rooms_updated_at
 before update on public.rooms
 for each row execute function public.set_updated_at();
 
+create table if not exists public.doors (
+  id uuid primary key default gen_random_uuid(),
+
+  room_id uuid not null references public.rooms(id) on delete cascade,
+
+  name text not null,
+
+  status text not null default 'active'
+    check (status in ('active', 'inactive')),
+
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+
+  constraint doors_room_name_unique unique (room_id, name)
+);
+
+drop trigger if exists set_doors_updated_at on public.doors;
+create trigger set_doors_updated_at
+before update on public.doors
+for each row execute function public.set_updated_at();
+
 -- =========================================================
 -- 4. DEVICES
 -- =========================================================
@@ -115,6 +181,7 @@ create table if not exists public.devices (
   id uuid primary key default gen_random_uuid(),
 
   room_id uuid references public.rooms(id) on delete set null,
+  door_id uuid references public.doors(id) on delete cascade,
 
   device_name text not null,
   device_code text not null unique,
@@ -337,6 +404,7 @@ create index if not exists idx_profiles_status on public.profiles(status);
 
 create index if not exists idx_devices_device_code on public.devices(device_code);
 create index if not exists idx_devices_room_id on public.devices(room_id);
+create index if not exists idx_devices_door_id on public.devices(door_id);
 create index if not exists idx_devices_status on public.devices(status);
 
 create index if not exists idx_face_profiles_user_id on public.face_profiles(user_id);
@@ -347,6 +415,11 @@ create index if not exists idx_face_profiles_status on public.face_profiles(stat
 create index if not exists idx_room_permissions_user_id on public.room_permissions(user_id);
 create index if not exists idx_room_permissions_room_id on public.room_permissions(room_id);
 create index if not exists idx_room_permissions_status on public.room_permissions(permission_status);
+
+create index if not exists idx_buildings_name on public.buildings(name);
+create index if not exists idx_floors_building_id on public.floors(building_id);
+create index if not exists idx_rooms_floor_id on public.rooms(floor_id);
+create index if not exists idx_doors_room_id on public.doors(room_id);
 
 create index if not exists idx_access_logs_user_id on public.access_logs(user_id);
 create index if not exists idx_access_logs_room_id on public.access_logs(room_id);
@@ -405,7 +478,10 @@ on conflict (id) do update set
 -- =========================================================
 
 alter table public.profiles enable row level security;
+alter table public.buildings enable row level security;
+alter table public.floors enable row level security;
 alter table public.rooms enable row level security;
+alter table public.doors enable row level security;
 alter table public.devices enable row level security;
 alter table public.face_profiles enable row level security;
 alter table public.room_permissions enable row level security;
@@ -424,6 +500,15 @@ drop policy if exists profiles_user_insert_own on public.profiles;
 drop policy if exists rooms_admin_all on public.rooms;
 drop policy if exists rooms_authenticated_select on public.rooms;
 
+drop policy if exists buildings_admin_all on public.buildings;
+drop policy if exists buildings_authenticated_select on public.buildings;
+
+drop policy if exists floors_admin_all on public.floors;
+drop policy if exists floors_authenticated_select on public.floors;
+
+drop policy if exists doors_admin_all on public.doors;
+drop policy if exists doors_authenticated_select on public.doors;
+
 drop policy if exists devices_admin_all on public.devices;
 drop policy if exists devices_authenticated_select on public.devices;
 
@@ -441,6 +526,7 @@ drop policy if exists alerts_user_select_own on public.alerts;
 
 drop policy if exists device_commands_admin_all on public.device_commands;
 drop policy if exists device_commands_authenticated_select on public.device_commands;
+drop policy if exists device_commands_user_insert on public.device_commands;
 
 drop policy if exists storage_admin_all_smartlock on storage.objects;
 drop policy if exists storage_authenticated_read_avatars on storage.objects;
@@ -483,6 +569,48 @@ with check (public.is_admin());
 
 create policy rooms_authenticated_select
 on public.rooms
+for select
+to authenticated
+using (true);
+
+-- BUILDINGS
+create policy buildings_admin_all
+on public.buildings
+for all
+to authenticated
+using (public.is_admin())
+with check (public.is_admin());
+
+create policy buildings_authenticated_select
+on public.buildings
+for select
+to authenticated
+using (true);
+
+-- FLOORS
+create policy floors_admin_all
+on public.floors
+for all
+to authenticated
+using (public.is_admin())
+with check (public.is_admin());
+
+create policy floors_authenticated_select
+on public.floors
+for select
+to authenticated
+using (true);
+
+-- DOORS
+create policy doors_admin_all
+on public.doors
+for all
+to authenticated
+using (public.is_admin())
+with check (public.is_admin());
+
+create policy doors_authenticated_select
+on public.doors
 for select
 to authenticated
 using (true);
@@ -570,6 +698,24 @@ on public.device_commands
 for select
 to authenticated
 using (true);
+
+create policy device_commands_user_insert
+on public.device_commands
+for insert
+to authenticated
+with check (
+  command in ('start_checkin', 'start_checkout')
+  and status = 'pending'
+  and requested_by = public.current_profile_id()
+  and exists (
+    select 1
+    from public.devices d
+    join public.room_permissions rp on rp.room_id = d.room_id
+    where d.id = device_id
+      and rp.user_id = requested_by
+      and rp.permission_status = 'allowed'
+  )
+);
 
 -- STORAGE
 create policy storage_admin_all_smartlock
@@ -676,6 +822,46 @@ limit 1
 on conflict (device_code) do update set
   device_name = excluded.device_name,
   room_id = excluded.room_id,
+  updated_at = now();
+
+-- Tro A: Building -> Floor -> Room -> Door -> Device
+insert into public.buildings (name, description)
+values ('Trọ A', 'Nhà trọ A – 3 tầng')
+on conflict (name) do nothing;
+
+insert into public.floors (building_id, name, level)
+select b.id, v.name, v.level
+from (values ('Tầng 1', 1), ('Tầng 2', 2), ('Tầng 3', 3)) as v(name, level)
+join public.buildings b on b.name = 'Trọ A'
+on conflict (building_id, name) do nothing;
+
+insert into public.rooms (room_name, floor, building_name, floor_id)
+select v.room_name, v.floor_name, 'Trọ A', f.id
+from (values
+  ('Phòng 101', 'Tầng 1'), ('Phòng 102', 'Tầng 1'), ('Phòng 103', 'Tầng 1'),
+  ('Phòng 201', 'Tầng 2'), ('Phòng 202', 'Tầng 2'),
+  ('Phòng 301', 'Tầng 3'), ('Phòng 302', 'Tầng 3')
+) as v(room_name, floor_name)
+join public.floors f
+  on f.name = v.floor_name
+ and f.building_id = (select id from public.buildings where name = 'Trọ A')
+on conflict (room_name, building_name) do update set floor_id = excluded.floor_id;
+
+insert into public.doors (room_id, name)
+select r.id, 'Cửa chính'
+from public.rooms r
+where r.building_name = 'Trọ A'
+on conflict (room_id, name) do nothing;
+
+insert into public.devices (room_id, door_id, device_name, device_code, status, door_status)
+select r.id, d.id, 'Raspberry Pi Door Device', 'DOOR_' || substr(r.room_name, 7), 'offline', 'locked'
+from public.rooms r
+join public.doors d on d.room_id = r.id and d.name = 'Cửa chính'
+where r.building_name = 'Trọ A'
+on conflict (device_code) do update set
+  room_id = excluded.room_id,
+  door_id = excluded.door_id,
+  device_name = excluded.device_name,
   updated_at = now();
 
 -- =========================================================

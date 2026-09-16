@@ -18,33 +18,59 @@
           <p class="state-message">Trang này chỉ dành cho quản trị viên.</p>
         </div>
       } @else {
-        <div class="device-card">
-          <div class="device-info">
-            <div class="device-code">{{ DOOR_DEVICE_CODE }}</div>
-            <div class="device-name">{{ device()?.device_name ?? 'SmartLock Door' }}</div>
-            <div class="device-meta">
-              <span class="chip" [class.chip-online]="deviceOnline()" [class.chip-offline]="!deviceOnline()">
-                {{ deviceOnline() ? 'ONLINE' : 'OFFLINE' }}
-              </span>
-              <span>Cửa: {{ doorStatusLabel() }}</span>
-              <span>Last seen: {{ lastSeenLabel() }}</span>
-            </div>
+        @if (entries().length === 0) {
+          <div class="state-block">
+            <mat-icon class="state-icon">devices_other</mat-icon>
+            <p class="state-title">Không tìm thấy thiết bị</p>
+            <p class="state-message">Chưa có thiết bị nào trong hệ thống.</p>
           </div>
-          <button mat-raised-button color="warn" (click)="restartService()" [disabled]="restarting()">
-            @if (restarting()) {
-              <mat-spinner diameter="18" />
-            } @else {
-              <mat-icon>restart_alt</mat-icon>
-            }
-            Khởi động lại service
-          </button>
-        </div>
+        } @else {
+          <mat-form-field appearance="outline" class="device-select">
+            <mat-label>Chọn thiết bị</mat-label>
+            <mat-select [value]="selectedId()" (selectionChange)="selectedId.set($event.value)">
+              @for (entry of entries(); track entry.device.id) {
+                <mat-option [value]="entry.device.id">
+                  {{ entry.roomName }} — {{ entry.device.device_code }}
+                  ({{ entry.device.status === 'online' ? 'ONLINE' : 'OFFLINE' }})
+                </mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
 
-        @if (result()) {
-          <div class="notice" [class.success]="result()!.ok" [class.error]="!result()!.ok">
-            <mat-icon>{{ result()!.ok ? 'check_circle' : 'error' }}</mat-icon>
-            <span>{{ result()!.text }}</span>
+          <div class="device-card">
+            <div class="device-info">
+              <div class="device-code">{{ device()?.device_code ?? '—' }}</div>
+              <div class="device-name">{{ device()?.device_name ?? 'SmartLock Door' }}</div>
+              <div class="device-meta">
+                <span class="chip" [class.chip-online]="deviceOnline()" [class.chip-offline]="!deviceOnline()">
+                  {{ deviceOnline() ? 'ONLINE' : 'OFFLINE' }}
+                </span>
+                <span>Phòng: {{ selectedEntry()?.roomName ?? '—' }}</span>
+                <span>Cửa: {{ doorStatusLabel() }}</span>
+                <span>Last seen: {{ lastSeenLabel() }}</span>
+              </div>
+            </div>
+            <button
+              mat-raised-button
+              color="warn"
+              (click)="restartService()"
+              [disabled]="restarting() || !device()"
+            >
+              @if (restarting()) {
+                <mat-spinner diameter="18" />
+              } @else {
+                <mat-icon>restart_alt</mat-icon>
+              }
+              Khởi động lại service
+            </button>
           </div>
+
+          @if (result()) {
+            <div class="notice" [class.success]="result()!.ok" [class.error]="!result()!.ok">
+              <mat-icon>{{ result()!.ok ? 'check_circle' : 'error' }}</mat-icon>
+              <span>{{ result()!.text }}</span>
+            </div>
+          }
         }
       }
     </mat-card-content>

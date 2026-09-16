@@ -7,10 +7,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTableModule } from '@angular/material/table';
 import { firstValueFrom } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
-import {
-  DOOR_DEVICE_CODE,
-  DeviceService,
-} from '../../core/services/device.service';
+import { DeviceService, type Device } from '../../core/services/device.service';
 import {
   FaceService,
   type FaceRegistration,
@@ -20,6 +17,10 @@ import { UserService } from '../../core/services/user.service';
 import { formatDateTime, initialsFromName, shortId } from '../../core/utils/format';
 import { ConfirmDialogComponent } from '../../core/components/confirm-dialog/confirm-dialog.component';
 import { FaceRegisterDialogComponent } from './face-register-dialog.component';
+import {
+  RegisterFaceDeviceDialogComponent,
+  type RegisterFaceDeviceResult,
+} from './register-face-device-dialog.component';
 
 const POLL_INTERVAL = 3000;
 const POLL_TIMEOUT = 210000;
@@ -44,7 +45,7 @@ export class FaceRegisterComponent {
   private readonly dialog = inject(MatDialog);
   private readonly destroyRef = inject(DestroyRef);
 
-  readonly baseColumns: string[] = ['face', 'user', 'status', 'registered'];
+  readonly baseColumns: string[] = ['face', 'user', 'room', 'status', 'registered'];
   readonly displayedColumns = computed(() =>
     this.isAdmin() ? [...this.baseColumns, 'actions'] : this.baseColumns,
   );
@@ -92,7 +93,7 @@ export class FaceRegisterComponent {
       data: {
         title: 'Đăng ký khuôn mặt trên thiết bị',
         message: `Gửi lệnh để thiết bị mở màn hình scan khuôn mặt "${face.face_name}"? Người cần đăng ký phải đứng trước camera của thiết bị (Pi).`,
-        confirmLabel: 'Gửi lệnh',
+        confirmLabel: 'Tiếp tục',
         icon: 'camera_alt',
       },
     });
@@ -101,13 +102,20 @@ export class FaceRegisterComponent {
       return;
     }
 
-    try {
-      const device = await this.deviceService.getDeviceByCode(DOOR_DEVICE_CODE);
-      if (!device) {
-        this.notice.set(`Không tìm thấy thiết bị "${DOOR_DEVICE_CODE}" trong hệ thống.`);
-        return;
-      }
+    const deviceRef = this.dialog.open(RegisterFaceDeviceDialogComponent, {
+      width: '480px',
+      maxWidth: '95vw',
+      autoFocus: 'first-tabbable',
+      data: { faceName: face.face_name, roomId: face.room_id },
+    });
+    const picked = await firstValueFrom<RegisterFaceDeviceResult | undefined>(
+      deviceRef.afterClosed(),
+    );
+    if (!picked) {
+      return;
+    }
 
+    try {
       let requestedBy: string | null = null;
       try {
         const user = await this.auth.getCurrentUser();
@@ -121,7 +129,7 @@ export class FaceRegisterComponent {
 
       await this.faceService.updateFaceStatus(face.id, 'pending');
       const cmd = await this.deviceService.sendRegisterFaceCommand(
-        device.id,
+        picked.device.id,
         face.face_name,
         requestedBy,
       );
@@ -130,15 +138,15 @@ export class FaceRegisterComponent {
       );
       this.registeringId.set(face.id);
       this.notice.set(
-        `Đã gửi lệnh đăng ký "${face.face_name}". Người cần đăng ký hãy đứng trước camera thiết bị trong vòng 3 phút.`,
+        `Đã gửi lệnh đăng ký "${face.face_name}" trên thiết bị ${picked.device.device_code} (${picked.roomName}). Người cần đăng ký hãy đứng trước camera thiết bị trong vòng 3 phút.`,
       );
-      this.pollCommandStatus(cmd.id, face.face_name);
+      this.pollCommandStatus(cmd.id, face.id, face.face_name, picked.device);
     } catch (err) {
       this.notice.set((err as Error).message);
     }
   }
 
-  private pollCommandStatus(cmdId: string, faceName: string): void {
+  private pollCommandStatus(cmdId: string, faceId: string, faceName: string, device: Device): void {
     let elapsed = 0;
     const timer = setInterval(async () => {
       elapsed += POLL_INTERVAL;
@@ -147,14 +155,17 @@ export class FaceRegisterComponent {
         if (!cmd || cmd.status === 'done' || cmd.status === 'failed' || cmd.status === 'cancelled') {
           clearInterval(timer);
           this.registeringId.set(null);
-          await this.loadFaces();
           if (!cmd) {
             this.notice.set('Không lấy được trạng thái lệnh đăng ký.');
           } else if (cmd.status === 'done') {
-            this.notice.set(`Đăng ký "${faceName}" hoàn tất trên thiết bị.`);
+            await this.faceService
+              .updateFaceDevice(faceId, device.id)
+              .catch(() => null);
+            this.notice.set(`Đăng ký "${faceName}" hoàn tất trên thiết bị ${device.device_code}.`);
           } else {
             this.notice.set(`Đăng ký "${faceName}" thất bại: ${cmd.result_message ?? cmd.status}.`);
           }
+          await this.loadFaces();
         } else if (elapsed >= POLL_TIMEOUT) {
           clearInterval(timer);
           this.registeringId.set(null);

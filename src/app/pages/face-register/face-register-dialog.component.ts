@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialogModule, MatDialogRef } from '@angular/material/dialog';
@@ -10,6 +10,8 @@ import { MatSelectModule } from '@angular/material/select';
 import { FaceService, type FaceRegistration } from '../../core/services/face.service';
 import { RoomService, type Room } from '../../core/services/room.service';
 import { UserService, type Profile } from '../../core/services/user.service';
+import { AuthService } from '../../core/services/auth.service';
+import { SiteService } from '../../core/services/site.service';
 
 @Component({
   selector: 'app-face-register-dialog',
@@ -31,6 +33,8 @@ export class FaceRegisterDialogComponent {
   private readonly faceService = inject(FaceService);
   private readonly userService = inject(UserService);
   private readonly roomService = inject(RoomService);
+  private readonly siteService = inject(SiteService);
+  private readonly auth = inject(AuthService);
   private readonly dialogRef = inject(MatDialogRef<FaceRegisterDialogComponent, FaceRegistration>);
 
   readonly form = this.fb.group({
@@ -41,10 +45,22 @@ export class FaceRegisterDialogComponent {
   });
 
   readonly profiles = signal<Profile[]>([]);
-  readonly rooms = signal<Room[]>([]);
+  readonly allRooms = signal<Room[]>([]);
   readonly loadingOptions = signal(true);
   readonly saving = signal(false);
   readonly error = signal<string | null>(null);
+
+  readonly memberRoomIds = signal<string[]>([]);
+
+  readonly roomLocked = computed(() => this.memberRoomIds().length > 0);
+
+  readonly rooms = computed<Room[]>(() => {
+    const ids = this.memberRoomIds();
+    if (ids.length > 0) {
+      return this.allRooms().filter((room) => ids.includes(room.id));
+    }
+    return this.allRooms();
+  });
 
   constructor() {
     void this.loadOptions();
@@ -59,11 +75,29 @@ export class FaceRegisterDialogComponent {
         this.roomService.listRooms(),
       ]);
       this.profiles.set(profiles.filter((profile) => profile.status === 'active'));
-      this.rooms.set(rooms.filter((room) => room.status === 'active'));
+      this.allRooms.set(rooms.filter((room) => room.status === 'active'));
     } catch (err) {
       this.error.set((err as Error).message);
     } finally {
       this.loadingOptions.set(false);
+    }
+  }
+
+  async onUserChange(): Promise<void> {
+    const userId = this.form.controls.user_id.value;
+    this.memberRoomIds.set([]);
+    this.form.patchValue({ room_id: '' });
+    if (!userId) {
+      return;
+    }
+    try {
+      const ids = await this.siteService.listMemberRoomIds(userId);
+      this.memberRoomIds.set(ids);
+      if (ids.length > 0) {
+        this.form.patchValue({ room_id: ids[0] });
+      }
+    } catch {
+      this.memberRoomIds.set([]);
     }
   }
 
@@ -83,6 +117,14 @@ export class FaceRegisterDialogComponent {
         note: note?.trim() || null,
         status: 'pending',
       });
+      if (room_id) {
+        try {
+          const profile = await this.auth.getCurrentProfile();
+          await this.siteService.addMembers(room_id, [user_id ?? ''], profile?.id ?? null);
+        } catch {
+          // Best-effort: không chặn đăng ký nếu đồng bộ member thất bại
+        }
+      }
       this.dialogRef.close(face);
     } catch (err) {
       this.error.set((err as Error).message);

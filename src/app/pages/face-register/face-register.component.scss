@@ -28,6 +28,17 @@
   color: var(--mat-sys-on-surface);
 }
 
+.user-meta {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.user-sub {
+  font-size: 0.78rem;
+  color: var(--mat-sys-on-surface-variant);
+}
+
 .status-registered {
   background-color: var(--mat-sys-tertiary-container);
   color: var(--mat-sys-on-tertiary-container);

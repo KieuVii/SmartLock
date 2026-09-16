@@ -1,8 +1,52 @@
+.door-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 16px;
+  margin-bottom: 8px;
+}
+
+.door-card {
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 16px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background-color: var(--mat-sys-surface);
+}
+
+.door-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.door-icon {
+  color: var(--mat-sys-primary);
+}
+
+.door-meta {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.door-name {
+  font-weight: 600;
+  color: var(--mat-sys-on-surface);
+}
+
+.door-code {
+  font-size: 0.78rem;
+  color: var(--mat-sys-on-surface-variant);
+}
+
 .action-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 24px;
-  margin: 24px 0;
+  gap: 16px;
+  margin: 8px 0;
 }
 
 .action-btn {

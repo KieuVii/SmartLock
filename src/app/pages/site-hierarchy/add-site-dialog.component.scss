@@ -1,0 +1,15 @@
+:host {
+  display: block;
+}
+
+.dialog-subtitle {
+  margin: 0 24px 4px;
+  color: var(--mat-sys-on-surface-variant);
+  font-size: 13px;
+}
+
+.dialog-form {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}

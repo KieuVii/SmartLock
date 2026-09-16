@@ -3,44 +3,83 @@
     <div class="panel-header">
       <div>
         <h2 class="panel-title">Checkin / Checkout</h2>
-        <p class="panel-subtitle">Điểm danh bằng khuôn mặt trên thiết bị</p>
+        <p class="panel-subtitle">
+          Điểm danh bằng khuôn mặt trên cửa phòng — chỉ thành viên của phòng
+        </p>
+      </div>
+      <div class="panel-actions">
+        <button mat-stroked-button (click)="loadDoors()" [disabled]="loading()">
+          <mat-icon>refresh</mat-icon>
+          Làm mới
+        </button>
       </div>
     </div>
     <mat-card-content>
-      @if (deviceOnline() === false) {
-        <div class="notice warning">
-          <mat-icon>wifi_off</mat-icon>
-          <span>Thiết bị {{ DOOR_DEVICE_CODE }} đang offline — lệnh sẽ không được xử lý.</span>
+      @if (loading()) {
+        <div class="center"><mat-spinner diameter="32" /></div>
+      } @else if (error()) {
+        <div class="state-block">
+          <mat-icon class="state-icon">error_outline</mat-icon>
+          <p class="state-title">Không thể tải danh sách phòng</p>
+          <p class="state-message">{{ error() }}</p>
+        </div>
+      } @else if (doors().length === 0) {
+        <div class="state-block">
+          <mat-icon class="state-icon">meeting_room</mat-icon>
+          <p class="state-title">Bạn chưa có phòng để điểm danh</p>
+          <p class="state-message">
+            Chỉ thành viên của phòng mới có thể Checkin / Checkout cửa phòng đó. Hãy liên hệ admin
+            để được thêm vào phòng.
+          </p>
+        </div>
+      } @else {
+        <div class="door-grid">
+          @for (entry of doors(); track entry.key) {
+            <div class="door-card">
+              <div class="door-head">
+                <mat-icon class="door-icon">door_front</mat-icon>
+                <div class="door-meta">
+                  <span class="door-name">{{ entry.roomName }}</span>
+                  <span class="door-code">{{ entry.device.device_code }}</span>
+                </div>
+                <span
+                  class="chip"
+                  [class]="entry.device.status === 'online' ? 'chip-granted' : 'chip-denied'"
+                >
+                  {{ deviceStatusLabel(entry.device) }}
+                </span>
+              </div>
+              <div class="action-grid">
+                <button
+                  mat-flat-button
+                  class="action-btn checkin"
+                  (click)="run('start_checkin', entry)"
+                  [disabled]="busy()"
+                >
+                  <mat-icon>login</mat-icon>
+                  <span class="btn-label">Checkin</span>
+                  @if (busy() && busyKey() === entry.key) {
+                    <mat-spinner diameter="22" />
+                  }
+                </button>
+
+                <button
+                  mat-flat-button
+                  class="action-btn checkout"
+                  (click)="run('start_checkout', entry)"
+                  [disabled]="busy()"
+                >
+                  <mat-icon>logout</mat-icon>
+                  <span class="btn-label">Checkout</span>
+                  @if (busy() && busyKey() === entry.key) {
+                    <mat-spinner diameter="22" />
+                  }
+                </button>
+              </div>
+            </div>
+          }
         </div>
       }
-
-      <div class="action-grid">
-        <button
-          mat-flat-button
-          class="action-btn checkin"
-          (click)="run('start_checkin')"
-          [disabled]="busy()"
-        >
-          <mat-icon>login</mat-icon>
-          <span class="btn-label">Checkin</span>
-          @if (busy() && busyAction() === 'start_checkin') {
-            <mat-spinner diameter="22" />
-          }
-        </button>
-
-        <button
-          mat-flat-button
-          class="action-btn checkout"
-          (click)="run('start_checkout')"
-          [disabled]="busy()"
-        >
-          <mat-icon>logout</mat-icon>
-          <span class="btn-label">Checkout</span>
-          @if (busy() && busyAction() === 'start_checkout') {
-            <mat-spinner diameter="22" />
-          }
-        </button>
-      </div>
 
       @if (reconnecting()) {
         <div class="notice warning">

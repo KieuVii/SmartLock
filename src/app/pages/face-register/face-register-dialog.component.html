@@ -21,7 +21,7 @@
     <form class="dialog-form" [formGroup]="form" (ngSubmit)="onSubmit()">
       <mat-form-field appearance="outline">
         <mat-label>Người dùng</mat-label>
-        <mat-select formControlName="user_id" required>
+        <mat-select formControlName="user_id" required (selectionChange)="onUserChange()">
           @for (profile of profiles(); track profile.id) {
             <mat-option [value]="profile.id">
               {{ profile.full_name }}{{ profile.email ? ' · ' + profile.email : '' }}
@@ -47,12 +47,19 @@
 
       <mat-form-field appearance="outline">
         <mat-label>Phòng (không bắt buộc)</mat-label>
-        <mat-select formControlName="room_id">
-          <mat-option [value]="''">Không gán phòng</mat-option>
+        <mat-select formControlName="room_id" [disabled]="roomLocked()">
+          @if (!roomLocked()) {
+            <mat-option [value]="''">Không gán phòng</mat-option>
+          }
           @for (room of rooms(); track room.id) {
             <mat-option [value]="room.id">{{ room.room_name }}</mat-option>
           }
         </mat-select>
+        @if (roomLocked()) {
+          <mat-hint
+            >Người dùng đã là thành viên phòng — phòng được tự động gán theo phòng hiện có.</mat-hint
+          >
+        }
       </mat-form-field>
 
       <mat-form-field appearance="outline">

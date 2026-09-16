@@ -1,14 +1,16 @@
-import { Component, DestroyRef, inject, signal } from '@angular/core';
+import { Component, computed, DestroyRef, inject, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
+import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatSelectModule } from '@angular/material/select';
 import { AuthService } from '../../core/services/auth.service';
 import {
-  DOOR_DEVICE_CODE,
   DeviceService,
   type Device,
   type DeviceCommandStatus,
+  type RoomDeviceEntry,
 } from '../../core/services/device.service';
 import { UserService } from '../../core/services/user.service';
 
@@ -20,7 +22,14 @@ const ONLINE_GRACE_SEC = 60;
   selector: 'app-device-control',
   templateUrl: './device-control.component.html',
   styleUrl: './device-control.component.scss',
-  imports: [MatButtonModule, MatCardModule, MatIconModule, MatProgressSpinnerModule],
+  imports: [
+    MatButtonModule,
+    MatCardModule,
+    MatFormFieldModule,
+    MatIconModule,
+    MatProgressSpinnerModule,
+    MatSelectModule,
+  ],
 })
 export class DeviceControlComponent {
   private readonly deviceService = inject(DeviceService);
@@ -28,12 +37,19 @@ export class DeviceControlComponent {
   private readonly auth = inject(AuthService);
   private readonly destroyRef = inject(DestroyRef);
 
-  readonly DOOR_DEVICE_CODE = DOOR_DEVICE_CODE;
   readonly isAdmin = signal(false);
-  readonly device = signal<Device | null>(null);
+  readonly entries = signal<RoomDeviceEntry[]>([]);
+  readonly selectedId = signal<string | null>(null);
   readonly loading = signal(false);
   readonly restarting = signal(false);
   readonly result = signal<{ ok: boolean; text: string } | null>(null);
+
+  readonly selectedEntry = computed<RoomDeviceEntry | null>(() => {
+    const id = this.selectedId();
+    return this.entries().find((entry) => entry.device.id === id) ?? null;
+  });
+
+  readonly device = computed<Device | null>(() => this.selectedEntry()?.device ?? null);
 
   constructor() {
     void this.auth.isCurrentUserAdmin().then((admin) => this.isAdmin.set(admin));
@@ -43,12 +59,28 @@ export class DeviceControlComponent {
   async refresh(): Promise<void> {
     this.loading.set(true);
     try {
-      this.device.set(await this.deviceService.getDeviceByCode(DOOR_DEVICE_CODE));
+      const entries = await this.deviceService.listDevicesWithRooms();
+      const current = this.selectedId();
+      this.entries.set(entries);
+      if (!current || !entries.some((entry) => entry.device.id === current)) {
+        this.selectedId.set(this.pickDefault(entries)?.device.id ?? null);
+      }
     } catch {
-      this.device.set(null);
+      this.entries.set([]);
     } finally {
       this.loading.set(false);
     }
+  }
+
+  private pickDefault(entries: RoomDeviceEntry[]): RoomDeviceEntry | null {
+    if (entries.length === 0) {
+      return null;
+    }
+    return [...entries].sort((a, b) => {
+      const ta = a.device.last_seen ? new Date(a.device.last_seen).getTime() : 0;
+      const tb = b.device.last_seen ? new Date(b.device.last_seen).getTime() : 0;
+      return tb - ta;
+    })[0];
   }
 
   deviceOnline(): boolean {
@@ -67,12 +99,16 @@ export class DeviceControlComponent {
 
   private async isDeviceOnline(): Promise<boolean> {
     try {
-      const device = await this.deviceService.getDeviceByCode(DOOR_DEVICE_CODE);
-      if (!device || device.status !== 'online') {
+      const device = this.device();
+      if (!device) {
         return false;
       }
-      if (device.last_seen) {
-        const ageSec = (Date.now() - new Date(device.last_seen).getTime()) / 1000;
+      const fresh = await this.deviceService.getDevice(device.id);
+      if (!fresh || fresh.status !== 'online') {
+        return false;
+      }
+      if (fresh.last_seen) {
+        const ageSec = (Date.now() - new Date(fresh.last_seen).getTime()) / 1000;
         return ageSec <= ONLINE_GRACE_SEC;
       }
       return true;
@@ -99,7 +135,7 @@ export class DeviceControlComponent {
     }
     const device = this.device();
     if (!device) {
-      this.result.set({ ok: false, text: `Không tìm thấy thiết bị "${DOOR_DEVICE_CODE}".` });
+      this.result.set({ ok: false, text: 'Chưa chọn thiết bị.' });
       return;
     }
     if (!window.confirm('Khởi động lại service trên Pi? Pi sẽ mất kết nối trong vài giây rồi tự bật lại.')) {
