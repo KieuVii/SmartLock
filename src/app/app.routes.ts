@@ -4,6 +4,16 @@ import { MainLayout } from './layout/main-layout/main-layout.component';
 
 export const routes: Routes = [
   {
+    path: '',
+    pathMatch: 'full',
+    redirectTo: 'project-intro',
+  },
+  {
+    path: 'project-intro',
+    loadComponent: () =>
+      import('./pages/project-intro/project-intro.component').then((m) => m.ProjectIntroComponent),
+  },
+  {
     path: 'login',
     loadComponent: () => import('./pages/login/login.component').then((m) => m.LoginComponent),
   },
@@ -77,6 +87,6 @@ export const routes: Routes = [
   },
   {
     path: '**',
-    redirectTo: 'dashboard',
+    redirectTo: 'project-intro',
   },
 ];

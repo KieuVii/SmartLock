@@ -35,6 +35,21 @@ export class LoginComponent {
   readonly loading = signal(false);
   readonly error = signal<string | null>(null);
 
+  constructor() {
+    void this.redirectIfLoggedIn();
+  }
+
+  private async redirectIfLoggedIn(): Promise<void> {
+    try {
+      const { session } = await this.auth.getSession();
+      if (session) {
+        await this.router.navigate(['/dashboard']);
+      }
+    } catch {
+      // Bỏ qua lỗi lấy session, người dùng vẫn có thể đăng nhập bình thường.
+    }
+  }
+
   async onSubmit(): Promise<void> {
     if (this.form.invalid) {
       return;

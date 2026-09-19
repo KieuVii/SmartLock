@@ -1,0 +1,76 @@
+<div class="intro-page">
+  <header class="intro-header">
+    <img
+      src="https://kzqtfdnycolcafvbfpec.supabase.co/storage/v1/object/public/avatars/logo.png"
+      alt="Logo Trường Đại học Công nghiệp Thành phố Hồ Chí Minh (IUH)"
+      class="school-logo"
+    />
+    <div class="school-meta">
+      <span class="school-name">Trường Đại học Công nghiệp Thành phố Hồ Chí Minh</span>
+      <span class="school-name-en">Industrial University of Ho Chi Minh City (IUH)</span>
+    </div>
+  </header>
+
+  <main class="intro-main">
+    <section class="intro-left">
+      <span class="program-badge">SAMSUNG INNOVATION CAMPUS 2026</span>
+      <p class="hero-eyebrow">ĐỒ ÁN SINH VIÊN · MÔN HỌC</p>
+      <h1 class="hero-title">SMART LOCK</h1>
+      <p class="hero-subtitle">
+        HỆ THỐNG KIỂM SOÁT RA VÀO THÔNG MINH BẰNG NHẬN DIỆN KHUÔN MẶT
+      </p>
+      <p class="hero-course">VẠN VẬT KẾT NỐI - IoT (Internet-of-Things)</p>
+
+      <div class="enter">
+        <button
+          mat-flat-button
+          color="primary"
+          class="enter-btn"
+          (click)="onEnterSystem()"
+          [disabled]="entering()"
+        >
+          @if (entering()) {
+            <mat-spinner diameter="20" />
+          } @else {
+            <mat-icon>arrow_forward</mat-icon>
+          }
+          <span>VÀO HỆ THỐNG</span>
+        </button>
+        <p class="enter-hint">Đăng nhập bằng tài khoản đã được cấp để sử dụng hệ thống</p>
+      </div>
+    </section>
+
+    <section class="intro-right">
+      <dl class="info-grid">
+        <div class="info-item">
+          <dt>Khoa</dt>
+          <dd>Khoa Công nghệ Điện tử</dd>
+        </div>
+        <div class="info-item">
+          <dt>Ngành / Chương trình đào tạo</dt>
+          <dd>
+            IoT và Trí tuệ nhân tạo ứng dụng
+            <span class="program-code">7510304</span>
+            <span class="program-en">Internet of Things and Applied Artificial Intelligence</span>
+          </dd>
+        </div>
+        <div class="info-item">
+          <dt>Giảng viên hướng dẫn</dt>
+          <dd>TS. Nguyễn Văn Thái</dd>
+        </div>
+        <div class="info-item">
+          <dt>Sinh viên thực hiện</dt>
+          <dd class="students">
+            <span>Nguyễn Thị Kiều Vi</span>
+            <span>Bạch Thị Thúy Hằng</span>
+            <span>Trần Ngọc Hồng Đức</span>
+          </dd>
+        </div>
+      </dl>
+    </section>
+  </main>
+
+  <footer class="intro-footer">
+    <span>Khoa Công nghệ Điện tử · Trường Đại học Công nghiệp Thành phố Hồ Chí Minh · Samsung Innovation Campus 2026</span>
+  </footer>
+</div>
